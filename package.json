@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Chrome extension that blocks social media behind a calming outdoor photo and reason prompt.",
+  "description": "Austere Chrome extension that blocks social media beside a full-height outdoor photo until a reason is recorded.",
   "scripts": {
     "clean": "rm -rf dist",
     "typecheck": "tsc -p tsconfig.json --noEmit",

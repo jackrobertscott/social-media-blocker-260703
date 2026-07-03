@@ -10,7 +10,6 @@ interface OutdoorPhoto {
   id: string;
   src: string;
   alt: string;
-  caption: string;
 }
 
 const OUTDOOR_PHOTOS: OutdoorPhoto[] = [
@@ -18,55 +17,46 @@ const OUTDOOR_PHOTOS: OutdoorPhoto[] = [
     id: "alpine-trail",
     src: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1800&q=85",
     alt: "A winding trail through bright green mountains beneath a soft sky.",
-    caption: "Mountain trail · Unsplash",
   },
   {
     id: "quiet-lake",
     src: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1800&q=85",
     alt: "A calm mountain lake reflecting trees and a clear blue sky.",
-    caption: "Quiet lake · Unsplash",
   },
   {
     id: "forest-light",
     src: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1800&q=85",
     alt: "Sunlight filtering through a lush green forest path.",
-    caption: "Forest light · Unsplash",
   },
   {
     id: "valley-river",
     src: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1800&q=85",
     alt: "A wide valley river surrounded by granite cliffs and pine trees.",
-    caption: "Open valley · Unsplash",
   },
   {
     id: "waterfall-mist",
     src: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=1800&q=85",
     alt: "A waterfall dropping through green cliffs into mist below.",
-    caption: "Waterfall mist · Unsplash",
   },
   {
     id: "desert-road",
     src: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1800&q=85",
     alt: "A quiet road stretching through warm desert hills at sunset.",
-    caption: "Desert road · Unsplash",
   },
   {
     id: "starry-peaks",
     src: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1800&q=85",
     alt: "Snowy mountain peaks under a clear, starry night sky.",
-    caption: "Starry peaks · Unsplash",
   },
   {
     id: "coastal-cliffs",
     src: "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?auto=format&fit=crop&w=1800&q=85",
     alt: "Rugged coastal cliffs meeting deep blue ocean water.",
-    caption: "Coastal cliffs · Unsplash",
   },
 ];
 
 const pageShell = queryElement<HTMLElement>("#block-page");
 const outdoorPhoto = queryElement<HTMLImageElement>("#outdoor-photo");
-const photoCredit = queryElement<HTMLElement>("#photo-credit");
 const siteName = queryElement<HTMLElement>("#site-name");
 const leadText = queryElement<HTMLElement>("#lead-text");
 const targetUrlElement = queryElement<HTMLElement>("#target-url");
@@ -239,14 +229,10 @@ function renderOutdoorPhoto(): void {
   outdoorPhoto.hidden = false;
   outdoorPhoto.alt = photo.alt;
   outdoorPhoto.src = photo.src;
-  photoCredit.textContent = photo.caption;
-
   outdoorPhoto.addEventListener(
     "error",
     () => {
       outdoorPhoto.hidden = true;
-      photoCredit.textContent =
-        "Outdoor photo unavailable — enjoy this quiet view instead.";
     },
     { once: true },
   );
