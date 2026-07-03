@@ -4,11 +4,16 @@ export interface SocialSite {
   domains: readonly string[];
 }
 
-export const SOCIAL_SITES = [
+export const SOCIAL_SITES: readonly SocialSite[] = [
   {
     id: "facebook",
     name: "Facebook",
-    domains: ["facebook.com", "fb.com", "messenger.com", "m.me"],
+    domains: ["facebook.com", "fb.com"],
+  },
+  {
+    id: "messenger",
+    name: "Messenger",
+    domains: ["messenger.com", "m.me"],
   },
   { id: "instagram", name: "Instagram", domains: ["instagram.com"] },
   { id: "x", name: "X / Twitter", domains: ["x.com", "twitter.com", "t.co"] },
@@ -28,7 +33,7 @@ export const SOCIAL_SITES = [
   { id: "telegram", name: "Telegram", domains: ["telegram.org", "t.me"] },
   { id: "vk", name: "VK", domains: ["vk.com"] },
   { id: "weibo", name: "Weibo", domains: ["weibo.com"] },
-] as const satisfies readonly SocialSite[];
+];
 
 const sitesById: ReadonlyMap<string, SocialSite> = new Map(
   SOCIAL_SITES.map((site) => [site.id, site]),
