@@ -6,38 +6,58 @@
     <title>Blocked social media site</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
-    <main id="block-page" class="page-shell block-shell" hidden>
-      <section class="panel">
-        <p class="eyebrow">Social media blocked</p>
-        <h1 id="site-name"></h1>
-        <p id="lead-text" class="lead">
-          You are trying to visit <code id="target-url"></code>.
-          Write why you need access before continuing.
-        </p>
-
-        <form id="reason-form" class="stack" novalidate>
-          <label class="field">
-            <span>Reason for access</span>
-            <textarea
-              id="reason-input"
-              name="reason"
-              rows="5"
-              minlength="1"
-              required
-              placeholder="I need to access this because..."
-            ></textarea>
-          </label>
-          <p id="form-error" class="error" role="alert" hidden></p>
-          <button id="continue-button" type="submit">Record reason and continue</button>
-        </form>
+  <body class="block-body">
+    <main id="block-page" class="block-layout" hidden>
+      <section class="photo-stage" aria-labelledby="photo-title">
+        <img
+          id="outdoor-photo"
+          class="outdoor-photo"
+          alt=""
+          referrerpolicy="no-referrer"
+          decoding="async"
+        />
+        <div class="photo-overlay" aria-hidden="true"></div>
+        <div class="photo-caption">
+          <p class="eyebrow">Step outside for a moment</p>
+          <h2 id="photo-title">A quieter view before the feed.</h2>
+          <p id="photo-credit" class="photo-credit"></p>
+        </div>
       </section>
 
-      <section class="panel">
-        <h2>Previous access reasons</h2>
-        <p id="attempts-empty" class="muted">No reasons recorded yet.</p>
-        <ol id="attempts-list" class="attempt-list"></ol>
-      </section>
+      <aside class="block-side-panel" aria-label="Social media access controls">
+        <section class="panel action-panel">
+          <p class="eyebrow">Social media blocked</p>
+          <h1 id="site-name"></h1>
+          <p id="lead-text" class="lead">
+            You are trying to visit <code id="target-url"></code>.
+            Take a breath, then write why you need access before continuing.
+          </p>
+
+          <form id="reason-form" class="stack" novalidate>
+            <label class="field">
+              <span>Reason for access</span>
+              <textarea
+                id="reason-input"
+                name="reason"
+                rows="5"
+                minlength="1"
+                required
+                placeholder="I need to access this because..."
+              ></textarea>
+            </label>
+            <p id="form-error" class="error" role="alert" hidden></p>
+            <button id="continue-button" type="submit">
+              Record reason and continue
+            </button>
+          </form>
+        </section>
+
+        <section class="panel history-panel">
+          <h2>Previous access reasons</h2>
+          <p id="attempts-empty" class="muted">No reasons recorded yet.</p>
+          <ol id="attempts-list" class="attempt-list"></ol>
+        </section>
+      </aside>
     </main>
 
     <script type="module" src="block-page.js"></script>

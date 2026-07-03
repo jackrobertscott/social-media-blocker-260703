@@ -4,8 +4,69 @@ import { findMatchingSite, getSiteById } from "./shared/sites.js";
 import { getState, type AccessAttempt } from "./shared/storage.js";
 
 const EMPTY_ATTEMPTS_TEXT = "No reasons recorded yet.";
+const LAST_OUTDOOR_PHOTO_KEY = "social-media-blocker-last-outdoor-photo-v1";
+
+interface OutdoorPhoto {
+  id: string;
+  src: string;
+  alt: string;
+  caption: string;
+}
+
+const OUTDOOR_PHOTOS: OutdoorPhoto[] = [
+  {
+    id: "alpine-trail",
+    src: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1800&q=85",
+    alt: "A winding trail through bright green mountains beneath a soft sky.",
+    caption: "Mountain trail · Unsplash",
+  },
+  {
+    id: "quiet-lake",
+    src: "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1800&q=85",
+    alt: "A calm mountain lake reflecting trees and a clear blue sky.",
+    caption: "Quiet lake · Unsplash",
+  },
+  {
+    id: "forest-light",
+    src: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1800&q=85",
+    alt: "Sunlight filtering through a lush green forest path.",
+    caption: "Forest light · Unsplash",
+  },
+  {
+    id: "valley-river",
+    src: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1800&q=85",
+    alt: "A wide valley river surrounded by granite cliffs and pine trees.",
+    caption: "Open valley · Unsplash",
+  },
+  {
+    id: "waterfall-mist",
+    src: "https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=1800&q=85",
+    alt: "A waterfall dropping through green cliffs into mist below.",
+    caption: "Waterfall mist · Unsplash",
+  },
+  {
+    id: "desert-road",
+    src: "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1800&q=85",
+    alt: "A quiet road stretching through warm desert hills at sunset.",
+    caption: "Desert road · Unsplash",
+  },
+  {
+    id: "starry-peaks",
+    src: "https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=1800&q=85",
+    alt: "Snowy mountain peaks under a clear, starry night sky.",
+    caption: "Starry peaks · Unsplash",
+  },
+  {
+    id: "coastal-cliffs",
+    src: "https://images.unsplash.com/photo-1519904981063-b0cf448d479e?auto=format&fit=crop&w=1800&q=85",
+    alt: "Rugged coastal cliffs meeting deep blue ocean water.",
+    caption: "Coastal cliffs · Unsplash",
+  },
+];
 
 const pageShell = queryElement<HTMLElement>("#block-page");
+const outdoorPhoto = queryElement<HTMLImageElement>("#outdoor-photo");
+const photoCredit = queryElement<HTMLElement>("#photo-credit");
 const siteName = queryElement<HTMLElement>("#site-name");
 const leadText = queryElement<HTMLElement>("#lead-text");
 const targetUrlElement = queryElement<HTMLElement>("#target-url");
@@ -33,6 +94,7 @@ void initialise().catch(showInitialisationError);
 
 async function initialise(): Promise<void> {
   if (!site || !requestedUrl) {
+    renderOutdoorPhoto();
     renderInvalidRequest();
     await renderAttemptsSafely();
     revealPage();
@@ -45,6 +107,7 @@ async function initialise(): Promise<void> {
     return;
   }
 
+  renderOutdoorPhoto();
   await renderAttemptsSafely();
   revealPage();
 
@@ -171,6 +234,24 @@ function renderAttempts(attempts: AccessAttempt[]): void {
   }
 }
 
+function renderOutdoorPhoto(): void {
+  const photo = selectOutdoorPhoto();
+  outdoorPhoto.hidden = false;
+  outdoorPhoto.alt = photo.alt;
+  outdoorPhoto.src = photo.src;
+  photoCredit.textContent = photo.caption;
+
+  outdoorPhoto.addEventListener(
+    "error",
+    () => {
+      outdoorPhoto.hidden = true;
+      photoCredit.textContent =
+        "Outdoor photo unavailable — enjoy this quiet view instead.";
+    },
+    { once: true },
+  );
+}
+
 function renderBlockRequest(): void {
   siteName.textContent = site?.name ?? "";
   targetUrlElement.textContent = requestedUrl;
@@ -215,6 +296,7 @@ function showAttemptsError(message: string): void {
 
 function showInitialisationError(error: unknown): void {
   console.error("Failed to initialise block page", error);
+  renderOutdoorPhoto();
   siteName.textContent = "Could not load block page";
   leadText.textContent = "Refresh this tab or try opening the original URL again.";
   reasonForm.hidden = true;
@@ -230,6 +312,47 @@ function showRefreshError(error: unknown): void {
 function setSubmitting(isSubmitting: boolean): void {
   continueButton.disabled = isSubmitting;
   reasonInput.disabled = isSubmitting;
+}
+
+function selectOutdoorPhoto(): OutdoorPhoto {
+  const lastPhotoId = readLastOutdoorPhotoId();
+  const lastPhotoIndex = OUTDOOR_PHOTOS.findIndex(
+    (photo) => photo.id === lastPhotoId,
+  );
+  const nextPhotoIndex =
+    lastPhotoIndex >= 0
+      ? (lastPhotoIndex + 1) % OUTDOOR_PHOTOS.length
+      : randomIndex(OUTDOOR_PHOTOS.length);
+  const photo = OUTDOOR_PHOTOS[nextPhotoIndex] ?? OUTDOOR_PHOTOS[0];
+
+  writeLastOutdoorPhotoId(photo.id);
+  return photo;
+}
+
+function readLastOutdoorPhotoId(): string | null {
+  try {
+    return window.localStorage.getItem(LAST_OUTDOOR_PHOTO_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeLastOutdoorPhotoId(photoId: string): void {
+  try {
+    window.localStorage.setItem(LAST_OUTDOOR_PHOTO_KEY, photoId);
+  } catch {
+    // The page can still show a fresh random photo when local storage is unavailable.
+  }
+}
+
+function randomIndex(length: number): number {
+  if (length <= 1) {
+    return 0;
+  }
+
+  const values = new Uint32Array(1);
+  crypto.getRandomValues(values);
+  return values[0] % length;
 }
 
 function revealPage(): void {

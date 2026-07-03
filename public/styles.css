@@ -1,16 +1,22 @@
 :root {
   color-scheme: light;
-  --background: #f7f7f4;
-  --panel: #ffffff;
-  --text: #111111;
-  --muted: #666666;
-  --border: #d6d6d0;
-  --accent: #111111;
-  --error: #9f1d1d;
+  --background: #f6f1e8;
+  --panel: #fffffb;
+  --text: #172018;
+  --muted: #647064;
+  --border: rgba(31, 54, 38, 0.16);
+  --accent: #1f5134;
+  --accent-hover: #173d28;
+  --error: #a22626;
+  --shadow: 0 24px 70px rgba(24, 44, 31, 0.2);
 }
 
 * {
   box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
 }
 
 body {
@@ -36,11 +42,22 @@ input {
 button {
   width: fit-content;
   border: 1px solid var(--accent);
-  border-radius: 0;
+  border-radius: 999px;
   background: var(--accent);
   color: #ffffff;
-  padding: 0.7rem 0.95rem;
+  padding: 0.75rem 1.05rem;
   cursor: pointer;
+  font-weight: 700;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+button:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  transform: translateY(-1px);
 }
 
 button:disabled {
@@ -50,8 +67,9 @@ button:disabled {
 
 code {
   overflow-wrap: anywhere;
-  background: #eeeeea;
-  padding: 0.12rem 0.25rem;
+  background: rgba(31, 54, 38, 0.08);
+  border-radius: 0.4rem;
+  padding: 0.12rem 0.35rem;
 }
 
 h1,
@@ -61,9 +79,10 @@ p {
 }
 
 h1 {
-  font-size: 1.8rem;
-  line-height: 1.1;
-  margin-bottom: 0.75rem;
+  font-size: clamp(1.9rem, 5vw, 3.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  margin-bottom: 0.8rem;
 }
 
 h2 {
@@ -71,9 +90,99 @@ h2 {
   margin-bottom: 0.75rem;
 }
 
+.block-body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(151, 184, 126, 0.38), transparent 32rem),
+    radial-gradient(circle at bottom right, rgba(94, 143, 165, 0.24), transparent 28rem),
+    linear-gradient(135deg, #f7f1e4 0%, #e7efe7 100%);
+}
+
 .page-shell {
   width: min(860px, calc(100% - 32px));
   margin: 48px auto;
+}
+
+.block-layout {
+  align-items: stretch;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.25fr) minmax(340px, 440px);
+  margin: 24px auto;
+  min-height: calc(100vh - 48px);
+  width: min(1180px, calc(100% - 32px));
+}
+
+.photo-stage {
+  background:
+    linear-gradient(145deg, rgba(23, 55, 38, 0.82), rgba(71, 111, 86, 0.38)),
+    linear-gradient(180deg, #d8e8c7, #7fa486 48%, #264533);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  isolation: isolate;
+  min-height: 640px;
+  overflow: hidden;
+  position: relative;
+}
+
+.outdoor-photo {
+  display: block;
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  position: absolute;
+  transform: scale(1.01);
+  width: 100%;
+  z-index: -2;
+}
+
+.photo-overlay {
+  background:
+    linear-gradient(90deg, rgba(6, 21, 14, 0.34), transparent 58%),
+    linear-gradient(180deg, transparent 38%, rgba(6, 21, 14, 0.76) 100%);
+  inset: 0;
+  position: absolute;
+  z-index: -1;
+}
+
+.photo-caption {
+  bottom: clamp(24px, 5vw, 56px);
+  color: #ffffff;
+  left: clamp(22px, 5vw, 56px);
+  max-width: 560px;
+  position: absolute;
+  right: clamp(22px, 5vw, 56px);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.32);
+}
+
+.photo-caption .eyebrow {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.photo-caption h2 {
+  font-size: clamp(2.4rem, 6vw, 5.5rem);
+  font-weight: 800;
+  letter-spacing: -0.075em;
+  line-height: 0.92;
+  margin-bottom: 1rem;
+  max-width: 10ch;
+}
+
+.photo-credit {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.84rem;
+  margin-bottom: 0;
+}
+
+.block-side-panel {
+  align-self: center;
+  display: grid;
+  gap: 16px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 4px;
+  scrollbar-color: rgba(31, 81, 52, 0.4) transparent;
 }
 
 .block-shell {
@@ -87,17 +196,36 @@ h2 {
   padding: 24px;
 }
 
+.block-side-panel .panel {
+  background: rgba(255, 255, 251, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  border-radius: 28px;
+  box-shadow: 0 18px 55px rgba(24, 44, 31, 0.16);
+  padding: clamp(20px, 3vw, 32px);
+}
+
+@supports (backdrop-filter: blur(16px)) {
+  .block-side-panel .panel {
+    backdrop-filter: blur(16px);
+  }
+}
+
+.history-panel {
+  max-height: min(380px, 42vh);
+  overflow: auto;
+}
+
 .eyebrow {
   color: var(--muted);
   font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  margin-bottom: 0.5rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin-bottom: 0.55rem;
   text-transform: uppercase;
 }
 
 .lead {
-  color: #333333;
+  color: #324033;
   max-width: 68ch;
 }
 
@@ -119,16 +247,18 @@ h2 {
 textarea {
   width: 100%;
   border: 1px solid var(--border);
-  border-radius: 0;
-  padding: 0.75rem;
+  border-radius: 18px;
+  box-shadow: inset 0 1px 2px rgba(24, 44, 31, 0.06);
+  min-height: 132px;
+  padding: 0.85rem;
   resize: vertical;
 }
 
 textarea:focus,
 input:focus-visible,
 button:focus-visible {
-  outline: 2px solid #111111;
-  outline-offset: 2px;
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .error {
@@ -167,7 +297,7 @@ button:focus-visible {
 }
 
 .attempt-url {
-  color: #333333;
+  color: #344237;
   font-size: 0.78rem;
   overflow-wrap: anywhere;
 }
@@ -191,6 +321,8 @@ button:focus-visible {
 
 .popup-shell h1 {
   font-size: 1.1rem;
+  letter-spacing: normal;
+  line-height: 1.15;
   margin-bottom: 0.2rem;
 }
 
@@ -202,6 +334,7 @@ button:focus-visible {
 .toggle-row {
   align-items: flex-start;
   border: 1px solid var(--border);
+  border-radius: 14px;
   display: grid;
   gap: 10px;
   grid-template-columns: auto 1fr;
@@ -220,10 +353,51 @@ button:focus-visible {
 }
 
 .global-toggle {
-  background: #f4f4ef;
+  background: #f3f6ed;
 }
 
 .site-list {
   display: grid;
   gap: 8px;
+}
+
+@media (max-width: 920px) {
+  .block-layout {
+    grid-template-columns: 1fr;
+    margin: 16px auto 24px;
+    min-height: auto;
+  }
+
+  .photo-stage {
+    min-height: min(560px, 54vh);
+  }
+
+  .block-side-panel {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .history-panel {
+    max-height: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .block-layout {
+    width: min(100% - 20px, 1180px);
+  }
+
+  .photo-stage,
+  .block-side-panel .panel {
+    border-radius: 22px;
+  }
+
+  .photo-caption h2 {
+    font-size: clamp(2.1rem, 13vw, 3.6rem);
+  }
+
+  .popup-body {
+    min-width: 320px;
+    max-width: 320px;
+  }
 }
