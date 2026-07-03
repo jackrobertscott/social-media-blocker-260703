@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Social Media Blocker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="popup-body">
+    <main class="popup-shell">
+      <header>
+        <h1>Social Media Blocker</h1>
+        <p class="muted">Simple controls. No feeds.</p>
+      </header>
+
+      <label class="toggle-row global-toggle">
+        <input id="global-toggle" type="checkbox" />
+        <span>
+          <strong>Blocking enabled</strong>
+          <small>Turns all social media blocking on or off.</small>
+        </span>
+      </label>
+
+      <section>
+        <h2>Blocked websites</h2>
+        <div id="site-list" class="site-list"></div>
+      </section>
+
+      <section>
+        <h2>Recent reasons</h2>
+        <p id="popup-attempts-empty" class="muted">No reasons recorded yet.</p>
+        <ol id="popup-attempts-list" class="attempt-list compact"></ol>
+      </section>
+    </main>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

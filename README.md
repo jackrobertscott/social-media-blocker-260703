@@ -1,0 +1,24 @@
+# Social Media Blocker
+
+Austere Chrome extension, written in TypeScript, that blocks a curated set of social media sites behind a short reason prompt.
+
+## Behaviour
+
+- Global on/off switch in the extension popup.
+- Per-site toggles for the built-in social media list.
+- Blocked sites redirect to a plain reason form.
+- Submitting a non-empty reason records the attempt and grants access to that site in that tab.
+- Leaving the site clears that tab's grant, so returning asks for a reason again.
+- The block page shows previous access reasons.
+
+The built-in site list is in `src/shared/sites.ts`.
+
+## Development
+
+```sh
+npm install
+npm run typecheck
+npm run build
+```
+
+Load `dist/` in Chrome via **Extensions → Developer mode → Load unpacked**.

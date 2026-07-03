@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "Social Media Blocker",
+  "description": "Blocks social media sites until you write why you need access.",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "Social Media Blocker",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "permissions": ["storage", "tabs", "webNavigation"],
+  "host_permissions": ["<all_urls>"]
+}

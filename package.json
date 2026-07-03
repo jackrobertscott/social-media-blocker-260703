@@ -1,0 +1,16 @@
+{
+  "name": "social-media-blocker-260703",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Austere Chrome extension that blocks social media until a reason is recorded.",
+  "scripts": {
+    "clean": "rm -rf dist",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "build": "npm run clean && tsc -p tsconfig.json && node scripts/copy-static.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "latest",
+    "typescript": "latest"
+  }
+}

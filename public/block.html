@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Blocked social media site</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page-shell block-shell">
+      <section class="panel">
+        <p class="eyebrow">Social media blocked</p>
+        <h1 id="site-name">Blocked site</h1>
+        <p class="lead">
+          You are trying to visit <code id="target-url">this page</code>.
+          Write why you need access before continuing.
+        </p>
+
+        <form id="reason-form" class="stack" novalidate>
+          <label class="field">
+            <span>Reason for access</span>
+            <textarea
+              id="reason-input"
+              name="reason"
+              rows="5"
+              minlength="1"
+              required
+              placeholder="I need to access this because..."
+            ></textarea>
+          </label>
+          <p id="form-error" class="error" role="alert" hidden></p>
+          <button id="continue-button" type="submit">Record reason and continue</button>
+        </form>
+      </section>
+
+      <section class="panel">
+        <h2>Previous access reasons</h2>
+        <p id="attempts-empty" class="muted">No reasons recorded yet.</p>
+        <ol id="attempts-list" class="attempt-list"></ol>
+      </section>
+    </main>
+
+    <script type="module" src="block-page.js"></script>
+  </body>
+</html>
