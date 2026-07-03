@@ -64,6 +64,26 @@ export function findMatchingSite(url: string): SocialSite | undefined {
   );
 }
 
+export function getMainDomain(url: string): string | undefined {
+  const host = getHttpHost(url);
+  if (!host) {
+    return undefined;
+  }
+
+  const normalisedHost = normaliseHost(host);
+  for (const site of SOCIAL_SITES) {
+    const matchingDomain = site.domains.find((domain) =>
+      domainMatches(normalisedHost, domain),
+    );
+
+    if (matchingDomain) {
+      return normaliseHost(matchingDomain);
+    }
+  }
+
+  return normalisedHost;
+}
+
 export function domainMatches(host: string, domain: string): boolean {
   const normalisedHost = normaliseHost(host);
   const normalisedDomain = normaliseHost(domain);

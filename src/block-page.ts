@@ -1,6 +1,6 @@
 import { getCurrentTab, sendRuntimeMessage, updateTab } from "./shared/chrome.js";
 import type { GrantAccessMessage, GrantAccessResponse } from "./shared/messages.js";
-import { findMatchingSite, getSiteById } from "./shared/sites.js";
+import { findMatchingSite, getMainDomain, getSiteById } from "./shared/sites.js";
 import { getState, type AccessAttempt } from "./shared/storage.js";
 
 const EMPTY_ATTEMPTS_TEXT = "No reasons recorded yet.";
@@ -240,7 +240,7 @@ function renderOutdoorPhoto(): void {
 
 function renderBlockRequest(): void {
   siteName.textContent = site?.name ?? "";
-  targetUrlElement.textContent = requestedUrl;
+  targetUrlElement.textContent = formatDisplayDomain(requestedUrl);
   reasonForm.hidden = false;
 }
 
@@ -248,6 +248,18 @@ function renderInvalidRequest(): void {
   siteName.textContent = "Nothing to unblock";
   leadText.textContent = "No valid blocked URL was provided.";
   reasonForm.hidden = true;
+}
+
+function formatDisplayDomain(
+  url: string,
+  attempt?: AccessAttempt,
+): string {
+  return (
+    getMainDomain(url) ??
+    getSiteById(attempt?.siteId)?.domains[0] ??
+    attempt?.siteName ??
+    "this site"
+  );
 }
 
 function createAttemptElement(attempt: AccessAttempt): HTMLLIElement {
@@ -259,7 +271,7 @@ function createAttemptElement(attempt: AccessAttempt): HTMLLIElement {
 
   const url = document.createElement("div");
   url.className = "attempt-url";
-  url.textContent = attempt.url;
+  url.textContent = formatDisplayDomain(attempt.url, attempt);
 
   const reason = document.createElement("p");
   reason.className = "attempt-reason";
