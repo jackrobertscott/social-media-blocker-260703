@@ -1,12 +1,16 @@
 :root {
-  color-scheme: light;
-  --background: #f7f7f4;
-  --panel: #ffffff;
-  --text: #111111;
-  --muted: #666666;
-  --border: #d6d6d0;
-  --accent: #111111;
-  --error: #9f1d1d;
+  color-scheme: dark;
+  --background: #242424;
+  --panel: #303030;
+  --panel-muted: #2a2a2a;
+  --panel-contrast: #1f1f1f;
+  --text: #f2f2f2;
+  --muted: #b7b7b7;
+  --border: #111111;
+  --accent: #4a4a4a;
+  --accent-text: #ffffff;
+  --error: #ff8a8a;
+  --focus: #d6d6d6;
 }
 
 * {
@@ -39,10 +43,10 @@ input {
 
 button {
   width: fit-content;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--border);
   border-radius: 0;
   background: var(--accent);
-  color: #ffffff;
+  color: var(--accent-text);
   padding: 0.7rem 0.95rem;
   cursor: pointer;
 }
@@ -52,9 +56,18 @@ button:disabled {
   opacity: 0.65;
 }
 
+input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+::placeholder {
+  color: #8f8f8f;
+}
+
 code {
   overflow-wrap: anywhere;
-  background: #eeeeea;
+  background: var(--panel-contrast);
+  border: 1px solid var(--border);
   padding: 0.12rem 0.25rem;
 }
 
@@ -76,7 +89,7 @@ h2 {
 }
 
 .block-body {
-  background: #e7e7e2;
+  background: var(--background);
   min-height: 100vh;
   overflow: hidden;
 }
@@ -95,7 +108,7 @@ h2 {
 }
 
 .photo-stage {
-  background: #d8d8d2;
+  background: var(--panel-muted);
   height: 100vh;
   min-width: 0;
   overflow: hidden;
@@ -152,7 +165,7 @@ h2 {
 }
 
 .lead {
-  color: #333333;
+  color: var(--text);
   max-width: 68ch;
 }
 
@@ -175,6 +188,8 @@ textarea {
   width: 100%;
   border: 1px solid var(--border);
   border-radius: 0;
+  background: var(--panel-contrast);
+  color: var(--text);
   padding: 0.75rem;
   resize: vertical;
 }
@@ -182,7 +197,7 @@ textarea {
 textarea:focus,
 input:focus-visible,
 button:focus-visible {
-  outline: 2px solid #111111;
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -222,7 +237,7 @@ button:focus-visible {
 }
 
 .attempt-url {
-  color: #333333;
+  color: var(--muted);
   font-size: 0.78rem;
   overflow-wrap: anywhere;
 }
@@ -275,7 +290,7 @@ button:focus-visible {
 }
 
 .global-toggle {
-  background: #f4f4ef;
+  background: var(--panel-muted);
 }
 
 .site-list {
