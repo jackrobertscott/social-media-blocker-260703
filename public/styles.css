@@ -112,6 +112,37 @@ h2 {
   height: 100vh;
   min-width: 0;
   overflow: hidden;
+  position: relative;
+}
+
+.photo-badge {
+  align-items: center;
+  background: rgb(31 31 31 / 82%);
+  border: 1px solid rgb(255 255 255 / 24%);
+  color: var(--text);
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 0.45rem;
+  left: 24px;
+  letter-spacing: 0.08em;
+  padding: 0.55rem 0.7rem;
+  position: absolute;
+  text-transform: uppercase;
+  top: 24px;
+  z-index: 1;
+}
+
+.photo-badge-icon {
+  display: block;
+  fill: none;
+  flex: 0 0 auto;
+  height: 1rem;
+  stroke: currentColor;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 2;
+  width: 1rem;
 }
 
 .outdoor-photo {
