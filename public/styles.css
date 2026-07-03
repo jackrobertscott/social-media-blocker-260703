@@ -125,8 +125,8 @@ h2 {
   left: 24px;
   letter-spacing: 0.1em;
   line-height: 1;
+  filter: drop-shadow(0 2px 5px rgb(0 0 0 / 85%));
   position: absolute;
-  text-shadow: 0 1px 3px rgb(0 0 0 / 55%);
   text-transform: uppercase;
   top: 24px;
   z-index: 1;
