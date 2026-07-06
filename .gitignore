@@ -1,3 +1,31 @@
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Dependencies
 node_modules/
+
+# Build and package outputs
 dist/
+*.zip
+*.crx
+*.pem
+web-ext-artifacts/
+
+# Logs and reports
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+coverage/
+
+# Local environment and editor state
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+
+# Local screenshots / ad hoc captures
+Screenshot*.png

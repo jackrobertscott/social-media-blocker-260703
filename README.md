@@ -22,3 +22,7 @@ npm run build
 ```
 
 Load `dist/` in Chrome via **Extensions → Developer mode → Load unpacked**.
+
+## Privacy
+
+The extension privacy policy is available in [PRIVACY.md](PRIVACY.md).
