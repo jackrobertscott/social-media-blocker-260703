@@ -36,4 +36,4 @@ Data is stored locally by Chrome for this extension. You can delete it by cleari
 
 For privacy questions, open an issue at:
 
-https://github.com/jackrobertscott/social-media-blocker/issues
+https://github.com/jackrobertscott/social-media-blocker-260703/issues

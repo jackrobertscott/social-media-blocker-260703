@@ -47,7 +47,7 @@ Small promotional image:
 
 Privacy policy URL:
 
-`https://github.com/jackrobertscott/social-media-blocker/blob/main/PRIVACY.md`
+`https://github.com/jackrobertscott/social-media-blocker-260703/blob/main/PRIVACY.md`
 
 Single purpose:
 
