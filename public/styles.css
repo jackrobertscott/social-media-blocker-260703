@@ -317,6 +317,8 @@ button:focus-visible {
   color: var(--muted);
   display: block;
   font-size: 0.76rem;
+  line-height: 1.35;
+  margin-top: 0.12rem;
 }
 
 .global-toggle {
@@ -325,56 +327,106 @@ button:focus-visible {
 
 .site-list {
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .site-category {
   background: var(--panel-muted);
   border: 1px solid var(--border);
+  overflow: hidden;
 }
 
 .site-category-header {
-  align-items: center;
+  align-items: stretch;
   display: grid;
-  gap: 8px;
-  grid-template-columns: minmax(0, 1fr) auto;
-  padding: 10px;
+  gap: 0;
+  grid-template-columns: minmax(0, 1fr) 38px;
 }
 
 .category-toggle {
   align-items: flex-start;
   cursor: pointer;
   display: grid;
-  gap: 10px;
+  gap: 12px;
   grid-template-columns: auto minmax(0, 1fr);
   min-width: 0;
+  padding: 12px;
 }
 
 .category-toggle input {
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
+}
+
+.category-copy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.category-copy strong {
+  line-height: 1.2;
+}
+
+.category-meta {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.category-enabled-summary {
+  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
 }
 
 .category-summary {
   color: var(--muted);
   display: block;
   font-size: 0.76rem;
+  line-height: 1.35;
 }
 
 .category-expander {
+  align-items: center;
+  align-self: stretch;
   background: var(--panel-contrast);
+  border: 0;
+  border-left: 1px solid var(--border);
   color: var(--muted);
-  font-size: 0.76rem;
-  padding: 0.45rem 0.55rem;
+  display: grid;
+  justify-content: center;
+  padding: 0;
+  width: 38px;
 }
 
 .category-expander:hover {
+  background: var(--accent);
   color: var(--text);
 }
 
+.category-expander-icon {
+  fill: none;
+  height: 16px;
+  stroke: currentColor;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 2;
+  transition: transform 120ms ease;
+  width: 16px;
+}
+
+.category-expander[aria-expanded="true"] .category-expander-icon {
+  transform: rotate(180deg);
+}
+
 .category-site-list {
+  border-top: 1px solid var(--border);
   display: grid;
   gap: 8px;
-  padding: 0 10px 10px;
+  padding: 10px;
 }
 
 .category-site-list .toggle-row {

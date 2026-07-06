@@ -86,14 +86,25 @@ function createCategoryElement(
   });
 
   const labelText = document.createElement("span");
+  labelText.className = "category-copy";
+
   const name = document.createElement("strong");
   name.id = `category-${category.id}-label`;
   name.textContent = category.name;
-  const summary = document.createElement("small");
-  summary.className = "category-summary";
-  summary.textContent = `${enabledCount}/${sites.length} enabled · ${category.description}`;
 
-  labelText.append(name, summary);
+  const meta = document.createElement("span");
+  meta.className = "category-meta";
+
+  const enabledSummary = document.createElement("span");
+  enabledSummary.className = "category-enabled-summary";
+  enabledSummary.textContent = `${enabledCount}/${sites.length} enabled`;
+
+  const description = document.createElement("small");
+  description.className = "category-summary";
+  description.textContent = category.description;
+
+  meta.append(enabledSummary, description);
+  labelText.append(name, meta);
   toggleLabel.append(checkbox, labelText);
 
   const expandButton = document.createElement("button");
@@ -103,9 +114,9 @@ function createCategoryElement(
   expandButton.setAttribute("aria-expanded", String(isExpanded));
   expandButton.setAttribute(
     "aria-label",
-    `${isExpanded ? "Minimise" : "Expand"} ${category.name} sites`,
+    `${isExpanded ? "Collapse" : "Expand"} ${category.name} sites`,
   );
-  expandButton.textContent = isExpanded ? "Minimise" : "Expand";
+  expandButton.append(createChevronIcon());
   expandButton.addEventListener("click", () => {
     setCategoryExpanded(category.id, !isExpanded);
     renderSites(state);
@@ -124,6 +135,20 @@ function createCategoryElement(
 
   categoryElement.append(header, sitePanel);
   return categoryElement;
+}
+
+function createChevronIcon(): SVGSVGElement {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.classList.add("category-expander-icon");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("viewBox", "0 0 16 16");
+  svg.setAttribute("focusable", "false");
+
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", "M4 6l4 4 4-4");
+  svg.append(path);
+
+  return svg;
 }
 
 function createSiteToggle(site: BlockedSite, state: ExtensionState): HTMLLabelElement {
