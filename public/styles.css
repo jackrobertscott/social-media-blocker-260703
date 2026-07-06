@@ -185,6 +185,24 @@ h2 {
   overflow: auto;
 }
 
+.block-side-panel .history-panel {
+  padding: 0;
+}
+
+.history-panel h2 {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+  padding: 24px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.history-panel > .muted {
+  margin: 18px 24px 0;
+}
+
 .eyebrow {
   color: var(--muted);
   font-size: 0.76rem;
@@ -241,24 +259,65 @@ button:focus-visible {
 }
 
 .attempt-list {
+  counter-reset: access-attempt;
   display: grid;
-  gap: 12px;
-  list-style-position: inside;
+  gap: 0;
+  list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .attempt-list li {
-  border-top: 1px solid var(--border);
-  padding-top: 12px;
+  counter-increment: access-attempt;
+  display: grid;
+  gap: 4px;
+  padding: 12px 0;
+}
+
+.attempt-list li + li {
+  border-top: 1px dashed var(--border);
+}
+
+.attempt-list li::before {
+  color: var(--muted);
+  content: counter(access-attempt, decimal-leading-zero);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+}
+
+.history-panel .attempt-list {
+  padding-bottom: 8px;
+}
+
+.history-panel .attempt-list li {
+  gap: 4px 12px;
+  grid-template-columns: 2.4rem minmax(0, 1fr);
+  padding: 16px 24px 18px;
+}
+
+.history-panel .attempt-list li::before {
+  grid-row: 1 / span 3;
+  padding-top: 0.18rem;
+}
+
+.history-panel .attempt-list li > * {
+  grid-column: 2;
 }
 
 .attempt-list.compact {
-  gap: 8px;
+  gap: 0;
 }
 
 .attempt-list.compact li {
-  padding-top: 8px;
+  padding: 10px 0;
+}
+
+.attempt-list.compact li::before {
+  content: counter(access-attempt) ".";
+  font-size: 0.9rem;
+  letter-spacing: 0;
 }
 
 .attempt-meta {
@@ -295,7 +354,7 @@ button:focus-visible {
 }
 
 .popup-shell h2 {
-  border-top: 1px solid var(--border);
+  border-top: 1px dashed var(--border);
   padding-top: 14px;
 }
 
@@ -425,10 +484,16 @@ button:focus-visible {
 .category-site-list {
   border-top: 1px solid var(--border);
   display: grid;
-  gap: 8px;
-  padding: 10px;
+  gap: 0;
+  padding: 0;
 }
 
 .category-site-list .toggle-row {
   background: var(--panel);
+  border: 0;
+  padding: 12px;
+}
+
+.category-site-list .toggle-row + .toggle-row {
+  border-top: 1px dashed var(--border);
 }
