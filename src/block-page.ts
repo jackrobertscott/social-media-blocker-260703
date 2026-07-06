@@ -250,16 +250,8 @@ function renderInvalidRequest(): void {
   reasonForm.hidden = true;
 }
 
-function formatDisplayDomain(
-  url: string,
-  attempt?: AccessAttempt,
-): string {
-  return (
-    getMainDomain(url) ??
-    getSiteById(attempt?.siteId)?.domains[0] ??
-    attempt?.siteName ??
-    "this site"
-  );
+function formatDisplayDomain(url: string): string {
+  return getMainDomain(url) ?? "this site";
 }
 
 function createAttemptElement(attempt: AccessAttempt): HTMLLIElement {
@@ -269,15 +261,11 @@ function createAttemptElement(attempt: AccessAttempt): HTMLLIElement {
   meta.className = "attempt-meta";
   meta.textContent = `${attempt.siteName} · ${formatDate(attempt.createdAt)}`;
 
-  const url = document.createElement("div");
-  url.className = "attempt-url";
-  url.textContent = formatDisplayDomain(attempt.url, attempt);
-
   const reason = document.createElement("p");
   reason.className = "attempt-reason";
   reason.textContent = attempt.reason;
 
-  item.append(meta, url, reason);
+  item.append(meta, reason);
   return item;
 }
 

@@ -298,7 +298,7 @@ button:focus-visible {
 }
 
 .history-panel .attempt-list li::before {
-  grid-row: 1 / span 3;
+  grid-row: 1 / span 2;
   padding-top: 0.18rem;
 }
 
@@ -323,12 +323,6 @@ button:focus-visible {
 .attempt-meta {
   color: var(--muted);
   font-size: 0.78rem;
-}
-
-.attempt-url {
-  color: var(--muted);
-  font-size: 0.78rem;
-  overflow-wrap: anywhere;
 }
 
 .attempt-reason {
