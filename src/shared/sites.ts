@@ -4,6 +4,13 @@ export interface BlockedSite {
   domains: readonly string[];
 }
 
+export interface BlockedSiteCategory {
+  id: string;
+  name: string;
+  description: string;
+  siteIds: readonly string[];
+}
+
 export const BLOCKED_SITES: readonly BlockedSite[] = [
   {
     id: "facebook",
@@ -50,12 +57,74 @@ export const BLOCKED_SITES: readonly BlockedSite[] = [
   { id: "pluto-tv", name: "Pluto TV", domains: ["pluto.tv"] },
 ];
 
+export const BLOCKED_SITE_CATEGORIES: readonly BlockedSiteCategory[] = [
+  {
+    id: "social-networks",
+    name: "Social networks",
+    description: "Feeds, profiles, and broad social apps.",
+    siteIds: [
+      "facebook",
+      "instagram",
+      "x",
+      "tiktok",
+      "snapchat",
+      "pinterest",
+      "linkedin",
+      "threads",
+      "tumblr",
+      "bluesky",
+      "mastodon",
+      "vk",
+      "weibo",
+    ],
+  },
+  {
+    id: "communities-messaging",
+    name: "Communities & messaging",
+    description: "Chats, forums, and group communities.",
+    siteIds: ["messenger", "reddit", "discord", "whatsapp", "telegram"],
+  },
+  {
+    id: "video-platforms",
+    name: "Video platforms",
+    description: "Short-form, creator, and livestream video.",
+    siteIds: ["youtube", "twitch"],
+  },
+  {
+    id: "streaming-services",
+    name: "Streaming services",
+    description: "Subscription and ad-supported TV or film apps.",
+    siteIds: [
+      "netflix",
+      "hulu",
+      "disney-plus",
+      "max",
+      "prime-video",
+      "apple-tv",
+      "paramount-plus",
+      "peacock",
+      "crunchyroll",
+      "tubi",
+      "pluto-tv",
+    ],
+  },
+];
+
 const sitesById: ReadonlyMap<string, BlockedSite> = new Map(
   BLOCKED_SITES.map((site) => [site.id, site]),
 );
 
 export function getSiteById(siteId: string | null | undefined): BlockedSite | undefined {
   return siteId ? sitesById.get(siteId) : undefined;
+}
+
+export function getSitesForCategory(
+  category: BlockedSiteCategory,
+): readonly BlockedSite[] {
+  return category.siteIds.flatMap((siteId) => {
+    const site = getSiteById(siteId);
+    return site ? [site] : [];
+  });
 }
 
 export function defaultSiteSettings(): Record<string, boolean> {
