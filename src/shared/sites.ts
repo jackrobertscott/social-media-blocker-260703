@@ -1,10 +1,10 @@
-export interface SocialSite {
+export interface BlockedSite {
   id: string;
   name: string;
   domains: readonly string[];
 }
 
-export const SOCIAL_SITES: readonly SocialSite[] = [
+export const BLOCKED_SITES: readonly BlockedSite[] = [
   {
     id: "facebook",
     name: "Facebook",
@@ -33,33 +33,48 @@ export const SOCIAL_SITES: readonly SocialSite[] = [
   { id: "telegram", name: "Telegram", domains: ["telegram.org", "t.me"] },
   { id: "vk", name: "VK", domains: ["vk.com"] },
   { id: "weibo", name: "Weibo", domains: ["weibo.com"] },
+  { id: "netflix", name: "Netflix", domains: ["netflix.com"] },
+  { id: "hulu", name: "Hulu", domains: ["hulu.com"] },
+  { id: "disney-plus", name: "Disney+", domains: ["disneyplus.com"] },
+  { id: "max", name: "Max", domains: ["max.com", "hbomax.com"] },
+  { id: "prime-video", name: "Prime Video", domains: ["primevideo.com"] },
+  { id: "apple-tv", name: "Apple TV+", domains: ["tv.apple.com"] },
+  {
+    id: "paramount-plus",
+    name: "Paramount+",
+    domains: ["paramountplus.com"],
+  },
+  { id: "peacock", name: "Peacock", domains: ["peacocktv.com"] },
+  { id: "crunchyroll", name: "Crunchyroll", domains: ["crunchyroll.com"] },
+  { id: "tubi", name: "Tubi", domains: ["tubitv.com"] },
+  { id: "pluto-tv", name: "Pluto TV", domains: ["pluto.tv"] },
 ];
 
-const sitesById: ReadonlyMap<string, SocialSite> = new Map(
-  SOCIAL_SITES.map((site) => [site.id, site]),
+const sitesById: ReadonlyMap<string, BlockedSite> = new Map(
+  BLOCKED_SITES.map((site) => [site.id, site]),
 );
 
-export function getSiteById(siteId: string | null | undefined): SocialSite | undefined {
+export function getSiteById(siteId: string | null | undefined): BlockedSite | undefined {
   return siteId ? sitesById.get(siteId) : undefined;
 }
 
 export function defaultSiteSettings(): Record<string, boolean> {
   const settings: Record<string, boolean> = {};
 
-  for (const site of SOCIAL_SITES) {
+  for (const site of BLOCKED_SITES) {
     settings[site.id] = true;
   }
 
   return settings;
 }
 
-export function findMatchingSite(url: string): SocialSite | undefined {
+export function findMatchingSite(url: string): BlockedSite | undefined {
   const host = getHttpHost(url);
   if (!host) {
     return undefined;
   }
 
-  return SOCIAL_SITES.find((site) =>
+  return BLOCKED_SITES.find((site) =>
     site.domains.some((domain) => domainMatches(host, domain)),
   );
 }
@@ -71,7 +86,7 @@ export function getMainDomain(url: string): string | undefined {
   }
 
   const normalisedHost = normaliseHost(host);
-  for (const site of SOCIAL_SITES) {
+  for (const site of BLOCKED_SITES) {
     const matchingDomain = site.domains.find((domain) =>
       domainMatches(normalisedHost, domain),
     );
@@ -94,7 +109,7 @@ export function domainMatches(host: string, domain: string): boolean {
   );
 }
 
-export function formatSiteDomains(site: SocialSite): string {
+export function formatSiteDomains(site: BlockedSite): string {
   return site.domains.join(", ");
 }
 

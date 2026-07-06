@@ -114,7 +114,7 @@ async function grantAccess(message: {
 
   const site = findMatchingSite(message.url);
   if (!site || site.id !== message.siteId) {
-    throw new Error("This URL is not on the configured social media block list.");
+    throw new Error("This URL is not on the configured block list.");
   }
 
   await updateState((state) => ({

@@ -1,5 +1,5 @@
 import { getStorageValue, setStorageValue } from "./chrome.js";
-import { SOCIAL_SITES, defaultSiteSettings } from "./sites.js";
+import { BLOCKED_SITES, defaultSiteSettings } from "./sites.js";
 
 export const STORAGE_KEY = "social-media-blocker-state-v1";
 export const MAX_ATTEMPTS = 200;
@@ -61,7 +61,7 @@ export function normaliseState(value: unknown): ExtensionState {
   const defaultSites = defaultSiteSettings();
   const sites: Record<string, boolean> = {};
 
-  for (const site of SOCIAL_SITES) {
+  for (const site of BLOCKED_SITES) {
     const storedSiteSetting = rawSites[site.id];
     sites[site.id] =
       typeof storedSiteSetting === "boolean"

@@ -1,4 +1,4 @@
-import { SOCIAL_SITES, formatSiteDomains } from "./shared/sites.js";
+import { BLOCKED_SITES, formatSiteDomains } from "./shared/sites.js";
 import {
   getState,
   updateState,
@@ -34,7 +34,7 @@ async function render(): Promise<void> {
 function renderSites(state: ExtensionState): void {
   siteList.replaceChildren();
 
-  for (const site of SOCIAL_SITES) {
+  for (const site of BLOCKED_SITES) {
     const label = document.createElement("label");
     label.className = "toggle-row";
 

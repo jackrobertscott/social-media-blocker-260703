@@ -2,15 +2,15 @@
 
 Effective date: July 6, 2026
 
-Social Media Blocker is a Chrome extension that blocks selected social media websites until you write a reason for access.
+Social Media Blocker is a Chrome extension that blocks selected social media and video streaming websites until you write a reason for access.
 
 ## Data the extension handles
 
 The extension may store the following information locally in Chrome extension storage:
 
 - Whether blocking is enabled globally.
-- Which supported social media sites are enabled or disabled.
-- The supported social media site or URL you attempted to visit.
+- Which supported blocked sites are enabled or disabled.
+- The supported blocked site or URL you attempted to visit.
 - The reason you entered before continuing to a blocked site.
 - The date and time the reason was recorded.
 
