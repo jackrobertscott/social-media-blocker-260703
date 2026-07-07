@@ -2,15 +2,18 @@
 
 ## Upload package
 
-Build the extension and zip the contents of `dist/` before uploading a new package in the Chrome Web Store Developer Dashboard:
+Create a new Chrome Web Store distributable before uploading a package in the Chrome Web Store Developer Dashboard:
 
 ```sh
-npm run build
-cd dist
-zip -r ../social-media-blocker-0.1.0.zip .
+npm run package:chrome
 ```
 
-The ZIP must have `manifest.json` at the root.
+The package script automatically bumps the patch version in `package.json`,
+`package-lock.json`, and `public/manifest.json`, rebuilds `dist/`, validates the ZIP,
+and writes `social-media-blocker-<version>-chrome-store.zip`. Upload that ZIP. It
+must have `manifest.json` at the root, not inside a top-level `dist/` folder. Use
+`npm run package:chrome -- minor`, `npm run package:chrome -- major`, or
+`npm run package:chrome -- <x.y.z>` when a patch bump is not enough.
 
 ## Store listing
 

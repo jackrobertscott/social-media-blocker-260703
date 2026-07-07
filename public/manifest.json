@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Social Media Blocker",
   "description": "Blocks social media and video streaming sites until you write why you need access.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "action": {
     "default_title": "Social Media Blocker",
     "default_popup": "popup.html",

@@ -23,6 +23,20 @@ npm run build
 
 Load `dist/` in Chrome via **Extensions → Developer mode → Load unpacked**.
 
+## Chrome Web Store package
+
+Create uploadable store packages with:
+
+```sh
+npm run package:chrome
+```
+
+This automatically bumps the patch version in `package.json`, `package-lock.json`, and
+`public/manifest.json`, rebuilds `dist/`, and creates
+`social-media-blocker-<version>-chrome-store.zip` with `manifest.json` at the ZIP root.
+Use `npm run package:chrome -- minor`, `npm run package:chrome -- major`, or
+`npm run package:chrome -- <x.y.z>` when a patch bump is not enough.
+
 ## Privacy
 
 The extension privacy policy is available in [PRIVACY.md](PRIVACY.md).
