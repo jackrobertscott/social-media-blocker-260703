@@ -5,6 +5,15 @@ import { getState, type AccessAttempt } from "./shared/storage.js";
 
 const EMPTY_ATTEMPTS_TEXT = "No reasons recorded yet.";
 const LAST_OUTDOOR_PHOTO_KEY = "social-media-blocker-last-outdoor-photo-v1";
+const TWO_WEEK_DAY_COUNT = 14;
+const WEEK_DAY_COUNT = 7;
+const MONTH_DAY_COUNT = 30;
+
+interface DailyBypassCount {
+  key: string;
+  label: string;
+  count: number;
+}
 
 interface OutdoorPhoto {
   id: string;
@@ -66,6 +75,10 @@ const formError = queryElement<HTMLElement>("#form-error");
 const continueButton = queryElement<HTMLButtonElement>("#continue-button");
 const attemptsEmpty = queryElement<HTMLElement>("#attempts-empty");
 const attemptsList = queryElement<HTMLOListElement>("#attempts-list");
+const dayBypassCount = queryElement<HTMLElement>("#bypass-stat-day");
+const weekBypassCount = queryElement<HTMLElement>("#bypass-stat-week");
+const monthBypassCount = queryElement<HTMLElement>("#bypass-stat-month");
+const bypassGraph = queryElement<HTMLOListElement>("#bypass-graph");
 
 const params = new URLSearchParams(window.location.search);
 const requestedUrl = params.get("url") ?? "";
@@ -125,7 +138,7 @@ async function refreshAfterStateChange(): Promise<void> {
     return;
   }
 
-  renderAttempts(state.attempts);
+  renderAccessData(state.attempts);
 }
 
 async function continueIfBlockingDisabled(): Promise<boolean> {
@@ -207,11 +220,17 @@ async function submitReason(): Promise<void> {
 async function renderAttemptsSafely(): Promise<void> {
   try {
     const state = await getState();
-    renderAttempts(state.attempts);
+    renderAccessData(state.attempts);
   } catch (error) {
     showAttemptsError("Could not load previous access reasons.");
+    renderBypassStats([]);
     console.error("Failed to render access attempts", error);
   }
+}
+
+function renderAccessData(attempts: AccessAttempt[]): void {
+  renderAttempts(attempts);
+  renderBypassStats(attempts);
 }
 
 function renderAttempts(attempts: AccessAttempt[]): void {
@@ -222,6 +241,78 @@ function renderAttempts(attempts: AccessAttempt[]): void {
   for (const attempt of attempts) {
     attemptsList.append(createAttemptElement(attempt));
   }
+}
+
+function renderBypassStats(attempts: AccessAttempt[]): void {
+  const now = new Date();
+  const todayStart = startOfLocalDay(now);
+  const weekStart = addDays(todayStart, -(WEEK_DAY_COUNT - 1));
+  const monthStart = addDays(todayStart, -(MONTH_DAY_COUNT - 1));
+  const datedAttempts = attempts.flatMap((attempt) => {
+    const date = new Date(attempt.createdAt);
+    return Number.isNaN(date.getTime()) || date > now ? [] : [date];
+  });
+
+  dayBypassCount.textContent = String(
+    datedAttempts.filter((date) => date >= todayStart).length,
+  );
+  weekBypassCount.textContent = String(
+    datedAttempts.filter((date) => date >= weekStart).length,
+  );
+  monthBypassCount.textContent = String(
+    datedAttempts.filter((date) => date >= monthStart).length,
+  );
+
+  const dailyCounts = getDailyBypassCounts(datedAttempts, todayStart);
+  const maxCount = Math.max(1, ...dailyCounts.map((day) => day.count));
+  bypassGraph.replaceChildren(
+    ...dailyCounts.map((day) => createBypassGraphBar(day, maxCount)),
+  );
+}
+
+function getDailyBypassCounts(
+  attemptDates: Date[],
+  todayStart: Date,
+): DailyBypassCount[] {
+  const days = Array.from({ length: TWO_WEEK_DAY_COUNT }, (_, index) => {
+    const date = addDays(todayStart, index - (TWO_WEEK_DAY_COUNT - 1));
+    return {
+      key: formatLocalDateKey(date),
+      label: formatDayLabel(date),
+      count: 0,
+    };
+  });
+  const daysByKey = new Map(days.map((day) => [day.key, day]));
+
+  for (const date of attemptDates) {
+    const day = daysByKey.get(formatLocalDateKey(date));
+    if (day) {
+      day.count += 1;
+    }
+  }
+
+  return days;
+}
+
+function createBypassGraphBar(
+  day: DailyBypassCount,
+  maxCount: number,
+): HTMLLIElement {
+  const item = document.createElement("li");
+  item.title = `${day.label}: ${formatBypassCount(day.count)}`;
+  item.setAttribute("aria-label", item.title);
+
+  const bar = document.createElement("span");
+  bar.className = "bypass-graph-bar";
+  bar.style.setProperty("--bar-height", `${(day.count / maxCount) * 100}%`);
+  bar.style.setProperty("--bar-min-height", day.count > 0 ? "2px" : "0");
+
+  const label = document.createElement("span");
+  label.className = "bypass-graph-label";
+  label.textContent = day.label;
+
+  item.append(bar, label);
+  return item;
 }
 
 function renderOutdoorPhoto(): void {
@@ -287,6 +378,7 @@ function showInitialisationError(error: unknown): void {
   leadText.textContent = "Refresh this tab or try opening the original URL again.";
   reasonForm.hidden = true;
   showAttemptsError("Could not load previous access reasons.");
+  renderBypassStats([]);
   revealPage();
 }
 
@@ -352,6 +444,34 @@ function hidePage(): void {
 function formatDate(value: string): string {
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString();
+}
+
+function formatDayLabel(date: Date): string {
+  return date.toLocaleDateString(undefined, {
+    day: "numeric",
+    month: "numeric",
+  });
+}
+
+function formatLocalDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatBypassCount(count: number): string {
+  return `${count} ${count === 1 ? "bypass" : "bypasses"}`;
+}
+
+function startOfLocalDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function addDays(date: Date, days: number): Date {
+  const nextDate = new Date(date);
+  nextDate.setDate(nextDate.getDate() + days);
+  return nextDate;
 }
 
 function queryElement<TElement extends Element>(selector: string): TElement {

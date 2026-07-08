@@ -59,9 +59,39 @@
         </section>
 
         <section class="panel history-panel">
-          <h2>Previous access reasons</h2>
-          <p id="attempts-empty" class="muted">No reasons recorded yet.</p>
-          <ol id="attempts-list" class="attempt-list"></ol>
+          <h2>Recent access reasons</h2>
+          <div class="history-scroll" tabindex="0">
+            <p id="attempts-empty" class="muted">No reasons recorded yet.</p>
+            <ol id="attempts-list" class="attempt-list"></ol>
+          </div>
+        </section>
+
+        <section class="panel bypass-stats-panel" aria-labelledby="bypass-stats-heading">
+          <div class="bypass-stats-header">
+            <div>
+              <p class="eyebrow">Bypass stats</p>
+              <h2 id="bypass-stats-heading">Last 2 weeks</h2>
+            </div>
+            <div class="bypass-stat-cards" aria-label="Bypasses by period">
+              <div class="bypass-stat-card" role="group" aria-label="Bypasses today">
+                <span id="bypass-stat-day">0</span>
+                <small>Day</small>
+              </div>
+              <div class="bypass-stat-card" role="group" aria-label="Bypasses this week">
+                <span id="bypass-stat-week">0</span>
+                <small>Week</small>
+              </div>
+              <div class="bypass-stat-card" role="group" aria-label="Bypasses this month">
+                <span id="bypass-stat-month">0</span>
+                <small>Month</small>
+              </div>
+            </div>
+          </div>
+          <ol
+            id="bypass-graph"
+            class="bypass-graph"
+            aria-label="Daily bypasses for the last 14 days"
+          ></ol>
         </section>
       </aside>
     </main>

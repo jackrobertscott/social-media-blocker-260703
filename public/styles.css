@@ -155,7 +155,7 @@ h2 {
   background: var(--panel);
   border-left: 1px solid var(--border);
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   height: 100vh;
   overflow: hidden;
 }
@@ -181,8 +181,10 @@ h2 {
 }
 
 .history-panel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
 }
 
 .block-side-panel .history-panel {
@@ -194,12 +196,19 @@ h2 {
   border-bottom: 1px solid var(--border);
   margin: 0;
   padding: 24px;
-  position: sticky;
-  top: 0;
-  z-index: 1;
 }
 
-.history-panel > .muted {
+.history-scroll {
+  min-height: 0;
+  overflow: auto;
+}
+
+.history-scroll:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.history-scroll > .muted {
   margin: 18px 24px 0;
 }
 
@@ -304,6 +313,95 @@ button:focus-visible {
 
 .history-panel .attempt-list li > * {
   grid-column: 2;
+}
+
+.bypass-stats-panel {
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 14px;
+}
+
+.bypass-stats-header {
+  align-items: start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.bypass-stats-panel h2,
+.bypass-stats-panel .eyebrow {
+  margin-bottom: 0;
+}
+
+.bypass-stat-cards {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bypass-stat-card {
+  background: var(--panel-contrast);
+  border: 1px solid var(--border);
+  min-width: 3.6rem;
+  padding: 0.35rem 0.45rem;
+  text-align: center;
+}
+
+.bypass-stat-card span {
+  display: block;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.bypass-stat-card small {
+  color: var(--muted);
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  margin-top: 0.2rem;
+  text-transform: uppercase;
+}
+
+.bypass-graph {
+  align-items: end;
+  display: grid;
+  gap: 5px;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  height: 72px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bypass-graph li {
+  align-items: end;
+  display: grid;
+  gap: 4px;
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100%;
+  min-width: 0;
+}
+
+.bypass-graph-bar {
+  background: var(--accent-text);
+  border: 1px solid var(--border);
+  display: block;
+  height: var(--bar-height);
+  min-height: var(--bar-min-height);
+  width: 100%;
+}
+
+.bypass-graph-label {
+  color: var(--muted);
+  font-size: 0.62rem;
+  line-height: 1;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: clip;
+  white-space: nowrap;
 }
 
 .attempt-list.compact {
