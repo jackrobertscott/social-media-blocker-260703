@@ -188,17 +188,22 @@ h2 {
 }
 
 .block-side-panel .history-panel {
-  padding: 0;
+  gap: 10px;
+  padding: 16px 18px 14px;
 }
 
 .history-panel h2 {
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.86rem;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
   margin: 0;
-  padding: 24px;
+  text-transform: uppercase;
 }
 
 .history-scroll {
+  background: var(--panel-muted);
+  border: 1px solid var(--border);
   min-height: 0;
   overflow: auto;
 }
@@ -209,7 +214,7 @@ h2 {
 }
 
 .history-scroll > .muted {
-  margin: 18px 24px 0;
+  margin: 12px 14px;
 }
 
 .eyebrow {
@@ -297,18 +302,18 @@ button:focus-visible {
 }
 
 .history-panel .attempt-list {
-  padding-bottom: 8px;
+  padding: 2px 0;
 }
 
 .history-panel .attempt-list li {
-  gap: 4px 12px;
-  grid-template-columns: 2.4rem minmax(0, 1fr);
-  padding: 16px 24px 18px;
+  gap: 3px 10px;
+  grid-template-columns: 2rem minmax(0, 1fr);
+  padding: 10px 14px 11px;
 }
 
 .history-panel .attempt-list li::before {
   grid-row: 1 / span 2;
-  padding-top: 0.18rem;
+  padding-top: 0.16rem;
 }
 
 .history-panel .attempt-list li > * {
@@ -316,9 +321,13 @@ button:focus-visible {
 }
 
 .bypass-stats-panel {
-  border-top: 1px solid var(--border);
   display: grid;
   gap: 14px;
+}
+
+.block-side-panel .bypass-stats-panel {
+  border-top: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 6%);
 }
 
 .bypass-stats-header {
@@ -424,7 +433,8 @@ button:focus-visible {
 }
 
 .attempt-reason {
-  margin: 0.35rem 0 0;
+  line-height: 1.35;
+  margin: 0.15rem 0 0;
   white-space: pre-wrap;
 }
 
