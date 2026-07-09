@@ -69,6 +69,7 @@ const outdoorPhoto = queryElement<HTMLImageElement>("#outdoor-photo");
 const siteName = queryElement<HTMLElement>("#site-name");
 const leadText = queryElement<HTMLElement>("#lead-text");
 const targetUrlElement = queryElement<HTMLElement>("#target-url");
+const bypassButton = queryElement<HTMLButtonElement>("#bypass-button");
 const reasonForm = queryElement<HTMLFormElement>("#reason-form");
 const reasonInput = queryElement<HTMLTextAreaElement>("#reason-input");
 const formError = queryElement<HTMLElement>("#form-error");
@@ -113,6 +114,8 @@ async function initialise(): Promise<void> {
   renderOutdoorPhoto();
   await renderAttemptsSafely();
   revealPage();
+
+  bypassButton.addEventListener("click", revealReasonForm);
 
   reasonForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -332,12 +335,15 @@ function renderOutdoorPhoto(): void {
 function renderBlockRequest(): void {
   siteName.textContent = site?.name ?? "";
   targetUrlElement.textContent = formatDisplayDomain(requestedUrl);
-  reasonForm.hidden = false;
+  bypassButton.hidden = false;
+  bypassButton.setAttribute("aria-expanded", "false");
+  reasonForm.hidden = true;
 }
 
 function renderInvalidRequest(): void {
   siteName.textContent = "Nothing to unblock";
   leadText.textContent = "No valid blocked URL was provided.";
+  bypassButton.hidden = true;
   reasonForm.hidden = true;
 }
 
@@ -376,6 +382,7 @@ function showInitialisationError(error: unknown): void {
   renderOutdoorPhoto();
   siteName.textContent = "Could not load block page";
   leadText.textContent = "Refresh this tab or try opening the original URL again.";
+  bypassButton.hidden = true;
   reasonForm.hidden = true;
   showAttemptsError("Could not load previous access reasons.");
   renderBypassStats([]);
@@ -387,7 +394,16 @@ function showRefreshError(error: unknown): void {
   showAttemptsError("Could not refresh previous access reasons.");
 }
 
+function revealReasonForm(): void {
+  bypassButton.hidden = true;
+  bypassButton.setAttribute("aria-expanded", "true");
+  reasonForm.hidden = false;
+  showError("");
+  reasonInput.focus();
+}
+
 function setSubmitting(isSubmitting: boolean): void {
+  bypassButton.disabled = isSubmitting;
   continueButton.disabled = isSubmitting;
   reasonInput.disabled = isSubmitting;
 }

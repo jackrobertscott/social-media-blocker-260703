@@ -42,18 +42,49 @@ input {
 }
 
 button {
-  width: fit-content;
+  align-items: center;
+  background: linear-gradient(180deg, #626262 0%, var(--accent) 100%);
   border: 1px solid var(--border);
-  border-radius: 0;
-  background: var(--accent);
+  border-radius: 6px;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 16%),
+    0 2px 0 rgb(0 0 0 / 55%);
   color: var(--accent-text);
-  padding: 0.7rem 0.95rem;
   cursor: pointer;
+  display: inline-flex;
+  font-weight: 800;
+  gap: 0.45rem;
+  justify-content: center;
+  letter-spacing: 0.02em;
+  line-height: 1.1;
+  min-height: 2.65rem;
+  padding: 0.72rem 1rem;
+  text-align: center;
+  transition:
+    background 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+  width: fit-content;
+}
+
+button:hover:not(:disabled) {
+  background: linear-gradient(180deg, #737373 0%, #575757 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 20%),
+    0 3px 0 rgb(0 0 0 / 55%);
+  transform: translateY(-1px);
+}
+
+button:active:not(:disabled) {
+  background: linear-gradient(180deg, #444444 0%, #393939 100%);
+  box-shadow: inset 0 2px 4px rgb(0 0 0 / 45%);
+  transform: translateY(1px);
 }
 
 button:disabled {
+  box-shadow: none;
   cursor: progress;
-  opacity: 0.65;
+  opacity: 0.62;
 }
 
 input[type="checkbox"] {
@@ -231,6 +262,14 @@ h2 {
   max-width: 68ch;
 }
 
+.action-panel button:not(.category-expander) {
+  width: 100%;
+}
+
+#bypass-button {
+  margin-top: 0.2rem;
+}
+
 .stack {
   display: grid;
   gap: 12px;
@@ -259,6 +298,10 @@ textarea {
 textarea:focus,
 input:focus-visible,
 button:focus-visible {
+  box-shadow:
+    0 0 0 3px rgb(214 214 214 / 22%),
+    inset 0 1px 0 rgb(255 255 255 / 16%),
+    0 2px 0 rgb(0 0 0 / 55%);
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
@@ -556,16 +599,21 @@ button:focus-visible {
   background: var(--panel-contrast);
   border: 0;
   border-left: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: none;
   color: var(--muted);
   display: grid;
   justify-content: center;
+  min-height: 0;
   padding: 0;
   width: 38px;
 }
 
 .category-expander:hover {
   background: var(--accent);
+  box-shadow: none;
   color: var(--text);
+  transform: none;
 }
 
 .category-expander-icon {

@@ -36,10 +36,20 @@
           <h1 id="site-name"></h1>
           <p id="lead-text" class="lead">
             You are trying to visit <code id="target-url"></code>.
-            Write why you need access before continuing.
+            Select Bypass when you need temporary access, then write why
+            before continuing.
           </p>
 
-          <form id="reason-form" class="stack" novalidate>
+          <button
+            id="bypass-button"
+            type="button"
+            aria-controls="reason-form"
+            aria-expanded="false"
+          >
+            Bypass
+          </button>
+
+          <form id="reason-form" class="stack" novalidate hidden>
             <label class="field">
               <span>Reason for access</span>
               <textarea
