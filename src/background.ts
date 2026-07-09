@@ -23,7 +23,7 @@ interface StoredGrant {
 
 type ClearGrantResult = "cleared" | "missing" | "mismatched";
 
-const ALLOWED_BYPASS_DURATIONS_MINUTES = [10, 15, 30, 60, 120] as const;
+const ALLOWED_BYPASS_DURATIONS_MINUTES = [15, 30, 60, 120] as const;
 const MILLISECONDS_PER_MINUTE = 60_000;
 const GRANT_STORAGE_KEY_PREFIX = "social-media-blocker-active-grant:";
 const GRANT_EXPIRY_ALARM_PREFIX = "social-media-blocker-grant-expiry:";

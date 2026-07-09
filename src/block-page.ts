@@ -8,7 +8,7 @@ const LAST_OUTDOOR_PHOTO_KEY = "social-media-blocker-last-outdoor-photo-v1";
 const TWO_WEEK_DAY_COUNT = 14;
 const WEEK_DAY_COUNT = 7;
 const MONTH_DAY_COUNT = 30;
-const ALLOWED_BYPASS_DURATIONS_MINUTES = [10, 15, 30, 60, 120] as const;
+const ALLOWED_BYPASS_DURATIONS_MINUTES = [15, 30, 60, 120] as const;
 
 interface DailyBypassCount {
   key: string;
