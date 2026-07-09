@@ -13,6 +13,7 @@ const ALLOWED_BYPASS_DURATIONS_MINUTES = [15, 30, 60, 120] as const;
 interface DailyBypassCount {
   key: string;
   label: string;
+  displayLabel: string;
   count: number;
 }
 
@@ -294,6 +295,7 @@ function getDailyBypassCounts(
     return {
       key: formatLocalDateKey(date),
       label: formatDayLabel(date),
+      displayLabel: formatDayDisplayLabel(date),
       count: 0,
     };
   });
@@ -324,7 +326,7 @@ function createBypassGraphBar(
 
   const label = document.createElement("span");
   label.className = "bypass-graph-label";
-  label.textContent = day.label;
+  label.textContent = day.displayLabel;
 
   item.append(bar, label);
   return item;
@@ -492,6 +494,12 @@ function formatDayLabel(date: Date): string {
   return date.toLocaleDateString(undefined, {
     day: "numeric",
     month: "numeric",
+  });
+}
+
+function formatDayDisplayLabel(date: Date): string {
+  return date.toLocaleDateString(undefined, {
+    day: "2-digit",
   });
 }
 
