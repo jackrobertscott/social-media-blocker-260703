@@ -4,6 +4,7 @@ export interface GrantAccessMessage {
   siteId: string;
   url: string;
   reason: string;
+  durationMinutes: number;
 }
 
 export type ExtensionMessage = GrantAccessMessage;
@@ -24,6 +25,8 @@ export function isGrantAccessMessage(message: unknown): message is GrantAccessMe
     Number.isInteger(candidate.tabId) &&
     typeof candidate.siteId === "string" &&
     typeof candidate.url === "string" &&
-    typeof candidate.reason === "string"
+    typeof candidate.reason === "string" &&
+    typeof candidate.durationMinutes === "number" &&
+    Number.isFinite(candidate.durationMinutes)
   );
 }

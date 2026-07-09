@@ -17,9 +17,37 @@ export function getStorageValue<T>(key: string): Promise<T | undefined> {
   });
 }
 
+export function getAllStorageValues(): Promise<Record<string, unknown>> {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.get(null, (items) => {
+      const error = chromeError();
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(items);
+    });
+  });
+}
+
 export function setStorageValue(items: Record<string, unknown>): Promise<void> {
   return new Promise((resolve, reject) => {
     chrome.storage.local.set(items, () => {
+      const error = chromeError();
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve();
+    });
+  });
+}
+
+export function removeStorageValue(key: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    chrome.storage.local.remove(key, () => {
       const error = chromeError();
       if (error) {
         reject(error);
@@ -36,6 +64,25 @@ export function getCurrentTab(): Promise<chrome.tabs.Tab | undefined> {
     chrome.tabs.getCurrent((tab) => {
       const error = chromeError();
       if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(tab);
+    });
+  });
+}
+
+export function getTab(tabId: number): Promise<chrome.tabs.Tab | undefined> {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.get(tabId, (tab) => {
+      const error = chromeError();
+      if (error) {
+        if (/No tab with id/i.test(error.message)) {
+          resolve(undefined);
+          return;
+        }
+
         reject(error);
         return;
       }

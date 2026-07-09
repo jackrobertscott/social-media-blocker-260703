@@ -8,6 +8,7 @@ const LAST_OUTDOOR_PHOTO_KEY = "social-media-blocker-last-outdoor-photo-v1";
 const TWO_WEEK_DAY_COUNT = 14;
 const WEEK_DAY_COUNT = 7;
 const MONTH_DAY_COUNT = 30;
+const ALLOWED_BYPASS_DURATIONS_MINUTES = [10, 15, 30, 60, 120] as const;
 
 interface DailyBypassCount {
   key: string;
@@ -72,6 +73,9 @@ const targetUrlElement = queryElement<HTMLElement>("#target-url");
 const bypassButton = queryElement<HTMLButtonElement>("#bypass-button");
 const reasonForm = queryElement<HTMLFormElement>("#reason-form");
 const reasonInput = queryElement<HTMLTextAreaElement>("#reason-input");
+const durationInputs = Array.from(
+  document.querySelectorAll<HTMLInputElement>('input[name="durationMinutes"]'),
+);
 const formError = queryElement<HTMLElement>("#form-error");
 const continueButton = queryElement<HTMLButtonElement>("#continue-button");
 const attemptsEmpty = queryElement<HTMLElement>("#attempts-empty");
@@ -186,6 +190,13 @@ async function submitReason(): Promise<void> {
     return;
   }
 
+  const durationMinutes = readSelectedDurationMinutes();
+  if (!durationMinutes) {
+    showError("Choose how long the bypass should stay active.");
+    durationInputs[0]?.focus();
+    return;
+  }
+
   const reason = reasonInput.value.trim();
   if (!reason) {
     showError("Write a reason before continuing.");
@@ -208,6 +219,7 @@ async function submitReason(): Promise<void> {
       siteId: site.id,
       url: requestedUrl,
       reason,
+      durationMinutes,
     };
     const response = await sendRuntimeMessage<GrantAccessResponse>(message);
 
@@ -406,6 +418,20 @@ function setSubmitting(isSubmitting: boolean): void {
   bypassButton.disabled = isSubmitting;
   continueButton.disabled = isSubmitting;
   reasonInput.disabled = isSubmitting;
+  for (const input of durationInputs) {
+    input.disabled = isSubmitting;
+  }
+}
+
+function readSelectedDurationMinutes(): number | null {
+  const selectedInput = durationInputs.find((input) => input.checked);
+  const durationMinutes = Number(selectedInput?.value);
+
+  return ALLOWED_BYPASS_DURATIONS_MINUTES.some(
+    (allowedDuration) => allowedDuration === durationMinutes,
+  )
+    ? durationMinutes
+    : null;
 }
 
 function selectOutdoorPhoto(): OutdoorPhoto {

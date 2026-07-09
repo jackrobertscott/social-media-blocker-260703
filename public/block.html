@@ -50,6 +50,37 @@
           </button>
 
           <form id="reason-form" class="stack" novalidate hidden>
+            <fieldset class="duration-field">
+              <legend>Bypass duration</legend>
+              <div class="duration-options">
+                <label class="duration-option">
+                  <input
+                    type="radio"
+                    name="durationMinutes"
+                    value="10"
+                    checked
+                    required
+                  />
+                  <span>10 min</span>
+                </label>
+                <label class="duration-option">
+                  <input type="radio" name="durationMinutes" value="15" required />
+                  <span>15 min</span>
+                </label>
+                <label class="duration-option">
+                  <input type="radio" name="durationMinutes" value="30" required />
+                  <span>30 min</span>
+                </label>
+                <label class="duration-option">
+                  <input type="radio" name="durationMinutes" value="60" required />
+                  <span>1 hour</span>
+                </label>
+                <label class="duration-option">
+                  <input type="radio" name="durationMinutes" value="120" required />
+                  <span>2 hours</span>
+                </label>
+              </div>
+            </fieldset>
             <label class="field">
               <span>Reason for access</span>
               <textarea

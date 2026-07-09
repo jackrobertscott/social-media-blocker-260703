@@ -285,6 +285,84 @@ h2 {
   font-weight: 700;
 }
 
+.duration-field {
+  border: 0;
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.duration-field legend {
+  font-weight: 700;
+  margin-bottom: 8px;
+  padding: 0;
+}
+
+.duration-options {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.duration-option {
+  cursor: pointer;
+  min-width: 0;
+  position: relative;
+}
+
+.duration-option input {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.duration-option span {
+  align-items: center;
+  background: var(--panel-muted);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  display: flex;
+  font-weight: 800;
+  gap: 8px;
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.7rem;
+  text-align: center;
+}
+
+.duration-option span::before {
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+  content: "";
+  flex: 0 0 auto;
+  height: 0.74rem;
+  width: 0.74rem;
+}
+
+.duration-option input:checked + span {
+  background: linear-gradient(180deg, #626262 0%, var(--accent) 100%);
+  color: var(--text);
+}
+
+.duration-option input:checked + span::before {
+  background: var(--text);
+  border-color: var(--text);
+  box-shadow: inset 0 0 0 3px var(--accent);
+}
+
+.duration-option input:focus-visible + span {
+  box-shadow: 0 0 0 3px rgb(214 214 214 / 22%);
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.duration-option input:disabled + span {
+  cursor: progress;
+  opacity: 0.62;
+}
+
 textarea {
   width: 100%;
   border: 1px solid var(--border);
