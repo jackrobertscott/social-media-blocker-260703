@@ -7,23 +7,14 @@ export interface GrantAccessMessage {
   durationMinutes: number;
 }
 
-export interface PauseBlockingMessage {
-  type: "pause-blocking";
-  durationMinutes: number;
-}
-
 export interface SetGlobalBlockingMessage {
   type: "set-global-blocking";
   enabled: boolean;
 }
 
-export type ExtensionMessage =
-  | GrantAccessMessage
-  | PauseBlockingMessage
-  | SetGlobalBlockingMessage;
+export type ExtensionMessage = GrantAccessMessage | SetGlobalBlockingMessage;
 
 export type GrantAccessResponse = ActionResponse;
-export type PauseBlockingResponse = ActionResponse;
 export type SetGlobalBlockingResponse = ActionResponse;
 
 type ActionResponse = { ok: true } | { ok: false; error: string };
@@ -43,20 +34,6 @@ export function isGrantAccessMessage(
     typeof candidate.siteId === "string" &&
     typeof candidate.url === "string" &&
     typeof candidate.reason === "string" &&
-    isFiniteDuration(candidate.durationMinutes)
-  );
-}
-
-export function isPauseBlockingMessage(
-  message: unknown,
-): message is PauseBlockingMessage {
-  if (!message || typeof message !== "object") {
-    return false;
-  }
-
-  const candidate = message as Partial<PauseBlockingMessage>;
-  return (
-    candidate.type === "pause-blocking" &&
     isFiniteDuration(candidate.durationMinutes)
   );
 }

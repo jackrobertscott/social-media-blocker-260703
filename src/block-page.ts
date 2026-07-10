@@ -4,11 +4,10 @@ import {
   updateTab,
 } from "./shared/chrome.js";
 import { ALLOWED_TEMPORARY_DURATIONS_MINUTES } from "./shared/durations.js";
+import { pauseBlocking } from "./shared/global-blocking.js";
 import type {
   GrantAccessMessage,
   GrantAccessResponse,
-  PauseBlockingMessage,
-  PauseBlockingResponse,
 } from "./shared/messages.js";
 import {
   findMatchingSite,
@@ -302,16 +301,7 @@ async function submitDisable(): Promise<void> {
     }
 
     isRedirecting = true;
-    const message: PauseBlockingMessage = {
-      type: "pause-blocking",
-      durationMinutes,
-    };
-    const response = await sendRuntimeMessage<PauseBlockingResponse>(message);
-
-    if (!response?.ok) {
-      throw new Error(response?.error ?? "Could not disable blocking.");
-    }
-
+    await pauseBlocking(durationMinutes);
     await updateTab(currentTab.id, { url: requestedUrl });
   } catch (error) {
     isRedirecting = false;

@@ -9,11 +9,13 @@ import {
 } from "./shared/chrome.js";
 import { normaliseTemporaryDurationMinutes } from "./shared/durations.js";
 import {
+  GLOBAL_DISABLE_EXPIRY_ALARM_PREFIX,
+  scheduleGlobalDisableExpiry,
+} from "./shared/global-blocking.js";
+import {
   isGrantAccessMessage,
-  isPauseBlockingMessage,
   isSetGlobalBlockingMessage,
   type GrantAccessResponse,
-  type PauseBlockingResponse,
   type SetGlobalBlockingResponse,
 } from "./shared/messages.js";
 import { findMatchingSite } from "./shared/sites.js";
@@ -36,8 +38,6 @@ type ClearGrantResult = "cleared" | "missing" | "mismatched";
 const MILLISECONDS_PER_MINUTE = 60_000;
 const GRANT_STORAGE_KEY_PREFIX = "social-media-blocker-active-grant:";
 const GRANT_EXPIRY_ALARM_PREFIX = "social-media-blocker-grant-expiry:";
-const GLOBAL_DISABLE_EXPIRY_ALARM_PREFIX =
-  "social-media-blocker-global-disable-expiry:";
 
 void restoreExpiryAlarms().catch((error: unknown) => {
   console.error("Failed to restore expiry alarms", error);
@@ -71,24 +71,6 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           error:
             error instanceof Error ? error.message : "Could not grant access.",
         } satisfies GrantAccessResponse);
-      });
-
-    return true;
-  }
-
-  if (isPauseBlockingMessage(message)) {
-    void pauseBlocking(message.durationMinutes)
-      .then(() => {
-        sendResponse({ ok: true } satisfies PauseBlockingResponse);
-      })
-      .catch((error: unknown) => {
-        sendResponse({
-          ok: false,
-          error:
-            error instanceof Error
-              ? error.message
-              : "Could not disable blocking.",
-        } satisfies PauseBlockingResponse);
       });
 
     return true;
@@ -201,40 +183,6 @@ async function handleMainFrameNavigation(
   await updateTab(details.tabId, {
     url: buildBlockPageUrl(details.url, site.id),
   });
-}
-
-async function pauseBlocking(durationMinutesValue: number): Promise<void> {
-  const durationMinutes =
-    normaliseTemporaryDurationMinutes(durationMinutesValue);
-  if (!durationMinutes) {
-    throw new Error("Choose a valid disable duration.");
-  }
-
-  const globalDisabledUntil =
-    Date.now() + durationMinutes * MILLISECONDS_PER_MINUTE;
-
-  let previousGlobalDisabledUntil: number | null = null;
-  await updateState((state) => {
-    previousGlobalDisabledUntil = state.globalDisabledUntil;
-    return {
-      ...state,
-      globalDisabledUntil,
-    };
-  });
-
-  try {
-    await scheduleGlobalDisableExpiry(globalDisabledUntil);
-  } catch (error) {
-    await updateState((state) =>
-      state.globalDisabledUntil === globalDisabledUntil
-        ? {
-            ...state,
-            globalDisabledUntil: previousGlobalDisabledUntil,
-          }
-        : state,
-    );
-    throw error;
-  }
 }
 
 async function setGlobalBlocking(enabled: boolean): Promise<void> {
@@ -414,18 +362,6 @@ async function enforceBlockingAcrossOpenTabs(): Promise<void> {
         );
       }
     }),
-  );
-}
-
-async function scheduleGlobalDisableExpiry(
-  globalDisabledUntil: number,
-): Promise<void> {
-  // Unique names prevent concurrent pause requests from overwriting the winning timer.
-  await chrome.alarms.create(
-    `${GLOBAL_DISABLE_EXPIRY_ALARM_PREFIX}${globalDisabledUntil}`,
-    {
-      when: globalDisabledUntil,
-    },
   );
 }
 
