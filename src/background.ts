@@ -2,16 +2,26 @@ import {
   getAllStorageValues,
   getStorageValue,
   getTab,
+  queryTabs,
   removeStorageValue,
   setStorageValue,
   updateTab,
 } from "./shared/chrome.js";
-import { isGrantAccessMessage, type GrantAccessResponse } from "./shared/messages.js";
+import { normaliseTemporaryDurationMinutes } from "./shared/durations.js";
+import {
+  isGrantAccessMessage,
+  isPauseBlockingMessage,
+  isSetGlobalBlockingMessage,
+  type GrantAccessResponse,
+  type PauseBlockingResponse,
+  type SetGlobalBlockingResponse,
+} from "./shared/messages.js";
 import { findMatchingSite } from "./shared/sites.js";
 import {
   MAX_ATTEMPTS,
   createAccessAttempt,
   getState,
+  isBlockingEnabled,
   updateState,
 } from "./shared/storage.js";
 
@@ -23,13 +33,14 @@ interface StoredGrant {
 
 type ClearGrantResult = "cleared" | "missing" | "mismatched";
 
-const ALLOWED_BYPASS_DURATIONS_MINUTES = [15, 30, 60, 120] as const;
 const MILLISECONDS_PER_MINUTE = 60_000;
 const GRANT_STORAGE_KEY_PREFIX = "social-media-blocker-active-grant:";
 const GRANT_EXPIRY_ALARM_PREFIX = "social-media-blocker-grant-expiry:";
+const GLOBAL_DISABLE_EXPIRY_ALARM_PREFIX =
+  "social-media-blocker-global-disable-expiry:";
 
-void restoreGrantAlarms().catch((error: unknown) => {
-  console.error("Failed to restore grant expiry alarms", error);
+void restoreExpiryAlarms().catch((error: unknown) => {
+  console.error("Failed to restore expiry alarms", error);
 });
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -37,34 +48,71 @@ chrome.runtime.onInstalled.addListener(() => {
     console.error("Failed to initialise extension state", error);
   });
 
-  void restoreGrantAlarms().catch((error: unknown) => {
-    console.error("Failed to restore grant expiry alarms", error);
+  void restoreExpiryAlarms().catch((error: unknown) => {
+    console.error("Failed to restore expiry alarms", error);
   });
 });
 
 chrome.runtime.onStartup.addListener(() => {
-  void restoreGrantAlarms().catch((error: unknown) => {
-    console.error("Failed to restore grant expiry alarms", error);
+  void restoreExpiryAlarms().catch((error: unknown) => {
+    console.error("Failed to restore expiry alarms", error);
   });
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (!isGrantAccessMessage(message)) {
-    return false;
+  if (isGrantAccessMessage(message)) {
+    void grantAccess(message)
+      .then(() => {
+        sendResponse({ ok: true } satisfies GrantAccessResponse);
+      })
+      .catch((error: unknown) => {
+        sendResponse({
+          ok: false,
+          error:
+            error instanceof Error ? error.message : "Could not grant access.",
+        } satisfies GrantAccessResponse);
+      });
+
+    return true;
   }
 
-  void grantAccess(message)
-    .then(() => {
-      sendResponse({ ok: true } satisfies GrantAccessResponse);
-    })
-    .catch((error: unknown) => {
-      sendResponse({
-        ok: false,
-        error: error instanceof Error ? error.message : "Could not grant access.",
-      } satisfies GrantAccessResponse);
-    });
+  if (isPauseBlockingMessage(message)) {
+    void pauseBlocking(message.durationMinutes)
+      .then(() => {
+        sendResponse({ ok: true } satisfies PauseBlockingResponse);
+      })
+      .catch((error: unknown) => {
+        sendResponse({
+          ok: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Could not disable blocking.",
+        } satisfies PauseBlockingResponse);
+      });
 
-  return true;
+    return true;
+  }
+
+  if (isSetGlobalBlockingMessage(message)) {
+    void setGlobalBlocking(message.enabled)
+      .then(() => {
+        sendResponse({ ok: true } satisfies SetGlobalBlockingResponse);
+      })
+      .catch((error: unknown) => {
+        sendResponse({
+          ok: false,
+          error:
+            error instanceof Error
+              ? error.message
+              : "Could not update the blocking setting.",
+        } satisfies SetGlobalBlockingResponse);
+      });
+
+    return true;
+  }
+
+  return false;
 });
 
 chrome.webNavigation.onBeforeNavigate.addListener((details) => {
@@ -80,14 +128,21 @@ chrome.webNavigation.onHistoryStateUpdated.addListener((details) => {
 });
 
 chrome.alarms.onAlarm.addListener((alarm) => {
-  const expiry = parseGrantExpiryAlarmName(alarm.name);
-  if (!expiry) {
+  if (alarm.name.startsWith(GLOBAL_DISABLE_EXPIRY_ALARM_PREFIX)) {
+    void enforceGlobalDisableExpiry().catch((error: unknown) => {
+      console.error("Failed to re-enable blocking", error);
+    });
     return;
   }
 
-  void enforceGrantExpiry(expiry.tabId, expiry.grantId).catch((error: unknown) => {
-    console.error("Failed to enforce grant expiry", error);
-  });
+  const expiry = parseGrantExpiryAlarmName(alarm.name);
+  if (expiry) {
+    void enforceGrantExpiry(expiry.tabId, expiry.grantId).catch(
+      (error: unknown) => {
+        console.error("Failed to enforce grant expiry", error);
+      },
+    );
+  }
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => {
@@ -124,8 +179,10 @@ async function handleMainFrameNavigation(
   const state = await getState();
   const siteIsEnabled = state.sites[site.id] ?? true;
 
-  if (!state.globalEnabled || !siteIsEnabled) {
-    await clearStoredGrant(details.tabId);
+  if (!isBlockingEnabled(state) || !siteIsEnabled) {
+    if (!state.globalEnabled || !siteIsEnabled) {
+      await clearStoredGrant(details.tabId);
+    }
     return;
   }
 
@@ -146,6 +203,52 @@ async function handleMainFrameNavigation(
   });
 }
 
+async function pauseBlocking(durationMinutesValue: number): Promise<void> {
+  const durationMinutes =
+    normaliseTemporaryDurationMinutes(durationMinutesValue);
+  if (!durationMinutes) {
+    throw new Error("Choose a valid disable duration.");
+  }
+
+  const globalDisabledUntil =
+    Date.now() + durationMinutes * MILLISECONDS_PER_MINUTE;
+
+  let previousGlobalDisabledUntil: number | null = null;
+  await updateState((state) => {
+    previousGlobalDisabledUntil = state.globalDisabledUntil;
+    return {
+      ...state,
+      globalDisabledUntil,
+    };
+  });
+
+  try {
+    await scheduleGlobalDisableExpiry(globalDisabledUntil);
+  } catch (error) {
+    await updateState((state) =>
+      state.globalDisabledUntil === globalDisabledUntil
+        ? {
+            ...state,
+            globalDisabledUntil: previousGlobalDisabledUntil,
+          }
+        : state,
+    );
+    throw error;
+  }
+}
+
+async function setGlobalBlocking(enabled: boolean): Promise<void> {
+  await updateState((state) => ({
+    ...state,
+    globalEnabled: enabled,
+    globalDisabledUntil: null,
+  }));
+
+  if (enabled) {
+    await enforceBlockingAcrossOpenTabs();
+  }
+}
+
 async function grantAccess(message: {
   tabId: number;
   siteId: string;
@@ -153,7 +256,9 @@ async function grantAccess(message: {
   reason: string;
   durationMinutes: number;
 }): Promise<void> {
-  const durationMinutes = normaliseBypassDurationMinutes(message.durationMinutes);
+  const durationMinutes = normaliseTemporaryDurationMinutes(
+    message.durationMinutes,
+  );
   if (!durationMinutes) {
     throw new Error("Choose a valid bypass duration.");
   }
@@ -192,7 +297,10 @@ async function grantAccess(message: {
   await updateTab(message.tabId, { url: message.url });
 }
 
-async function enforceGrantExpiry(tabId: number, grantId: string): Promise<void> {
+async function enforceGrantExpiry(
+  tabId: number,
+  grantId: string,
+): Promise<void> {
   const grant = await getStoredGrant(tabId);
   if (!grant || grant.grantId !== grantId) {
     return;
@@ -221,13 +329,105 @@ async function enforceGrantExpiry(tabId: number, grantId: string): Promise<void>
 
   const state = await getState();
   const siteIsEnabled = state.sites[site.id] ?? true;
-  if (!state.globalEnabled || !siteIsEnabled) {
+  if (!isBlockingEnabled(state) || !siteIsEnabled) {
     return;
   }
 
   await updateTab(tabId, {
     url: buildBlockPageUrl(currentUrl, site.id),
   });
+}
+
+async function restoreExpiryAlarms(): Promise<void> {
+  await Promise.all([restoreGrantAlarms(), restoreGlobalDisableAlarm()]);
+}
+
+async function restoreGlobalDisableAlarm(): Promise<void> {
+  const state = await getState();
+  const globalDisabledUntil = state.globalDisabledUntil;
+  if (globalDisabledUntil === null) {
+    return;
+  }
+
+  if (globalDisabledUntil > Date.now()) {
+    await scheduleGlobalDisableExpiry(globalDisabledUntil);
+    return;
+  }
+
+  await enforceGlobalDisableExpiry();
+}
+
+async function enforceGlobalDisableExpiry(): Promise<void> {
+  const state = await getState();
+  const expiredDisableUntil = state.globalDisabledUntil;
+  if (expiredDisableUntil === null) {
+    return;
+  }
+
+  if (expiredDisableUntil > Date.now()) {
+    await scheduleGlobalDisableExpiry(expiredDisableUntil);
+    return;
+  }
+
+  const nextState = await updateState((currentState) =>
+    currentState.globalDisabledUntil === expiredDisableUntil
+      ? { ...currentState, globalDisabledUntil: null }
+      : currentState,
+  );
+
+  if (nextState.globalDisabledUntil !== null) {
+    if (nextState.globalDisabledUntil > Date.now()) {
+      await scheduleGlobalDisableExpiry(nextState.globalDisabledUntil);
+    }
+    return;
+  }
+
+  if (!isBlockingEnabled(nextState)) {
+    return;
+  }
+
+  await enforceBlockingAcrossOpenTabs();
+}
+
+async function enforceBlockingAcrossOpenTabs(): Promise<void> {
+  const tabs = await queryTabs({});
+
+  await Promise.all(
+    tabs.map(async (tab) => {
+      if (
+        typeof tab.id !== "number" ||
+        !tab.url ||
+        !findMatchingSite(tab.url)
+      ) {
+        return;
+      }
+
+      try {
+        await handleMainFrameNavigation({
+          frameId: 0,
+          tabId: tab.id,
+          url: tab.url,
+        });
+      } catch (error) {
+        console.error(
+          `Failed to re-evaluate tab ${tab.id} after blocking resumed`,
+          error,
+        );
+      }
+    }),
+  );
+}
+
+async function scheduleGlobalDisableExpiry(
+  globalDisabledUntil: number,
+): Promise<void> {
+  // Unique names prevent concurrent pause requests from overwriting the winning timer.
+  await chrome.alarms.create(
+    `${GLOBAL_DISABLE_EXPIRY_ALARM_PREFIX}${globalDisabledUntil}`,
+    {
+      when: globalDisabledUntil,
+    },
+  );
 }
 
 async function restoreGrantAlarms(): Promise<void> {
@@ -270,11 +470,16 @@ async function transferStoredGrant(
 }
 
 async function getStoredGrant(tabId: number): Promise<StoredGrant | undefined> {
-  const storedGrant = await getStorageValue<unknown>(buildGrantStorageKey(tabId));
+  const storedGrant = await getStorageValue<unknown>(
+    buildGrantStorageKey(tabId),
+  );
   return normaliseStoredGrant(storedGrant);
 }
 
-async function setStoredGrant(tabId: number, grant: StoredGrant): Promise<void> {
+async function setStoredGrant(
+  tabId: number,
+  grant: StoredGrant,
+): Promise<void> {
   const previousGrant = await getStoredGrant(tabId);
   if (previousGrant) {
     await clearGrantExpiryAlarm(tabId, previousGrant.grantId);
@@ -327,7 +532,10 @@ function scheduleGrantExpiry(tabId: number, grant: StoredGrant): void {
   });
 }
 
-async function clearGrantExpiryAlarm(tabId: number, grantId: string): Promise<void> {
+async function clearGrantExpiryAlarm(
+  tabId: number,
+  grantId: string,
+): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     chrome.alarms.clear(buildGrantExpiryAlarmName(tabId, grantId), () => {
       const lastError = chrome.runtime.lastError;
@@ -378,14 +586,6 @@ function parseGrantExpiryAlarmName(
   }
 
   return { tabId, grantId };
-}
-
-function normaliseBypassDurationMinutes(durationMinutes: number): number | null {
-  return ALLOWED_BYPASS_DURATIONS_MINUTES.some(
-    (allowedDuration) => allowedDuration === durationMinutes,
-  )
-    ? durationMinutes
-    : null;
 }
 
 function buildBlockPageUrl(targetUrl: string, siteId: string): string {

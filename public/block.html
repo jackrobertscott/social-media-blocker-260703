@@ -30,24 +30,38 @@
         />
       </section>
 
-      <aside class="block-side-panel" aria-label="Blocked website access controls">
+      <aside
+        class="block-side-panel"
+        aria-label="Blocked website access controls"
+      >
         <section class="panel action-panel">
           <p class="eyebrow">Website blocked</p>
           <h1 id="site-name"></h1>
           <p id="lead-text" class="lead">
-            You are trying to visit <code id="target-url"></code>.
-            Select Bypass when you need temporary access, then write why
-            before continuing.
+            You are trying to visit <code id="target-url"></code>. Bypass only
+            this site after recording a reason, or temporarily disable blocking
+            for every configured site.
           </p>
 
-          <button
-            id="bypass-button"
-            type="button"
-            aria-controls="reason-form"
-            aria-expanded="false"
-          >
-            Bypass
-          </button>
+          <div id="action-controls" class="block-actions">
+            <button
+              id="bypass-button"
+              type="button"
+              aria-controls="reason-form"
+              aria-expanded="false"
+            >
+              Bypass this site
+            </button>
+            <button
+              id="disable-blocker-button"
+              class="secondary-button"
+              type="button"
+              aria-controls="disable-form"
+              aria-expanded="false"
+            >
+              Disable entire blocker
+            </button>
+          </div>
 
           <form id="reason-form" class="stack" novalidate hidden>
             <fieldset class="duration-field">
@@ -64,15 +78,30 @@
                   <span>15 min</span>
                 </label>
                 <label class="duration-option">
-                  <input type="radio" name="durationMinutes" value="30" required />
+                  <input
+                    type="radio"
+                    name="durationMinutes"
+                    value="30"
+                    required
+                  />
                   <span>30 min</span>
                 </label>
                 <label class="duration-option">
-                  <input type="radio" name="durationMinutes" value="60" required />
+                  <input
+                    type="radio"
+                    name="durationMinutes"
+                    value="60"
+                    required
+                  />
                   <span>1 hour</span>
                 </label>
                 <label class="duration-option">
-                  <input type="radio" name="durationMinutes" value="120" required />
+                  <input
+                    type="radio"
+                    name="durationMinutes"
+                    value="120"
+                    required
+                  />
                   <span>2 hours</span>
                 </label>
               </div>
@@ -93,6 +122,59 @@
               Record reason and continue
             </button>
           </form>
+
+          <form id="disable-form" class="stack" novalidate hidden>
+            <p class="disable-explanation">
+              Every configured site will be available in every tab. Blocking
+              turns back on automatically when the selected time ends.
+            </p>
+            <fieldset class="duration-field">
+              <legend>Disable entire blocker for</legend>
+              <div class="duration-options">
+                <label class="duration-option">
+                  <input
+                    type="radio"
+                    name="disableDurationMinutes"
+                    value="15"
+                    checked
+                    required
+                  />
+                  <span>15 min</span>
+                </label>
+                <label class="duration-option">
+                  <input
+                    type="radio"
+                    name="disableDurationMinutes"
+                    value="30"
+                    required
+                  />
+                  <span>30 min</span>
+                </label>
+                <label class="duration-option">
+                  <input
+                    type="radio"
+                    name="disableDurationMinutes"
+                    value="60"
+                    required
+                  />
+                  <span>1 hour</span>
+                </label>
+                <label class="duration-option">
+                  <input
+                    type="radio"
+                    name="disableDurationMinutes"
+                    value="120"
+                    required
+                  />
+                  <span>2 hours</span>
+                </label>
+              </div>
+            </fieldset>
+            <p id="disable-form-error" class="error" role="alert" hidden></p>
+            <button id="disable-confirm-button" type="submit">
+              Disable blocker temporarily
+            </button>
+          </form>
         </section>
 
         <section class="panel history-panel">
@@ -103,22 +185,37 @@
           </div>
         </section>
 
-        <section class="panel bypass-stats-panel" aria-labelledby="bypass-stats-heading">
+        <section
+          class="panel bypass-stats-panel"
+          aria-labelledby="bypass-stats-heading"
+        >
           <div class="bypass-stats-header">
             <div>
               <p class="eyebrow">Bypass stats</p>
               <h2 id="bypass-stats-heading">Last 2 weeks</h2>
             </div>
             <div class="bypass-stat-cards" aria-label="Bypasses by period">
-              <div class="bypass-stat-card" role="group" aria-label="Bypasses today">
+              <div
+                class="bypass-stat-card"
+                role="group"
+                aria-label="Bypasses today"
+              >
                 <span id="bypass-stat-day">0</span>
                 <small>Day</small>
               </div>
-              <div class="bypass-stat-card" role="group" aria-label="Bypasses this week">
+              <div
+                class="bypass-stat-card"
+                role="group"
+                aria-label="Bypasses this week"
+              >
                 <span id="bypass-stat-week">0</span>
                 <small>Week</small>
               </div>
-              <div class="bypass-stat-card" role="group" aria-label="Bypasses this month">
+              <div
+                class="bypass-stat-card"
+                role="group"
+                aria-label="Bypasses this month"
+              >
                 <span id="bypass-stat-month">0</span>
                 <small>Month</small>
               </div>

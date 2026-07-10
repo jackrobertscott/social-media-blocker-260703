@@ -73,6 +73,22 @@ export function getCurrentTab(): Promise<chrome.tabs.Tab | undefined> {
   });
 }
 
+export function queryTabs(
+  queryInfo: chrome.tabs.QueryInfo,
+): Promise<chrome.tabs.Tab[]> {
+  return new Promise((resolve, reject) => {
+    chrome.tabs.query(queryInfo, (tabs) => {
+      const error = chromeError();
+      if (error) {
+        reject(error);
+        return;
+      }
+
+      resolve(tabs);
+    });
+  });
+}
+
 export function getTab(tabId: number): Promise<chrome.tabs.Tab | undefined> {
   return new Promise((resolve, reject) => {
     chrome.tabs.get(tabId, (tab) => {
@@ -109,7 +125,9 @@ export function updateTab(
   });
 }
 
-export function sendRuntimeMessage<TResponse>(message: unknown): Promise<TResponse> {
+export function sendRuntimeMessage<TResponse>(
+  message: unknown,
+): Promise<TResponse> {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(message, (response: TResponse) => {
       const error = chromeError();

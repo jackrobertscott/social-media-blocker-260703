@@ -7,13 +7,30 @@ export interface GrantAccessMessage {
   durationMinutes: number;
 }
 
-export type ExtensionMessage = GrantAccessMessage;
+export interface PauseBlockingMessage {
+  type: "pause-blocking";
+  durationMinutes: number;
+}
 
-export type GrantAccessResponse =
-  | { ok: true }
-  | { ok: false; error: string };
+export interface SetGlobalBlockingMessage {
+  type: "set-global-blocking";
+  enabled: boolean;
+}
 
-export function isGrantAccessMessage(message: unknown): message is GrantAccessMessage {
+export type ExtensionMessage =
+  | GrantAccessMessage
+  | PauseBlockingMessage
+  | SetGlobalBlockingMessage;
+
+export type GrantAccessResponse = ActionResponse;
+export type PauseBlockingResponse = ActionResponse;
+export type SetGlobalBlockingResponse = ActionResponse;
+
+type ActionResponse = { ok: true } | { ok: false; error: string };
+
+export function isGrantAccessMessage(
+  message: unknown,
+): message is GrantAccessMessage {
   if (!message || typeof message !== "object") {
     return false;
   }
@@ -26,7 +43,38 @@ export function isGrantAccessMessage(message: unknown): message is GrantAccessMe
     typeof candidate.siteId === "string" &&
     typeof candidate.url === "string" &&
     typeof candidate.reason === "string" &&
-    typeof candidate.durationMinutes === "number" &&
-    Number.isFinite(candidate.durationMinutes)
+    isFiniteDuration(candidate.durationMinutes)
   );
+}
+
+export function isPauseBlockingMessage(
+  message: unknown,
+): message is PauseBlockingMessage {
+  if (!message || typeof message !== "object") {
+    return false;
+  }
+
+  const candidate = message as Partial<PauseBlockingMessage>;
+  return (
+    candidate.type === "pause-blocking" &&
+    isFiniteDuration(candidate.durationMinutes)
+  );
+}
+
+export function isSetGlobalBlockingMessage(
+  message: unknown,
+): message is SetGlobalBlockingMessage {
+  if (!message || typeof message !== "object") {
+    return false;
+  }
+
+  const candidate = message as Partial<SetGlobalBlockingMessage>;
+  return (
+    candidate.type === "set-global-blocking" &&
+    typeof candidate.enabled === "boolean"
+  );
+}
+
+function isFiniteDuration(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
 }

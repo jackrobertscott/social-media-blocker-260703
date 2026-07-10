@@ -1,14 +1,31 @@
-import { getCurrentTab, sendRuntimeMessage, updateTab } from "./shared/chrome.js";
-import type { GrantAccessMessage, GrantAccessResponse } from "./shared/messages.js";
-import { findMatchingSite, getMainDomain, getSiteById } from "./shared/sites.js";
-import { getState, type AccessAttempt } from "./shared/storage.js";
+import {
+  getCurrentTab,
+  sendRuntimeMessage,
+  updateTab,
+} from "./shared/chrome.js";
+import { ALLOWED_TEMPORARY_DURATIONS_MINUTES } from "./shared/durations.js";
+import type {
+  GrantAccessMessage,
+  GrantAccessResponse,
+  PauseBlockingMessage,
+  PauseBlockingResponse,
+} from "./shared/messages.js";
+import {
+  findMatchingSite,
+  getMainDomain,
+  getSiteById,
+} from "./shared/sites.js";
+import {
+  getState,
+  isBlockingEnabled,
+  type AccessAttempt,
+} from "./shared/storage.js";
 
 const EMPTY_ATTEMPTS_TEXT = "No reasons recorded yet.";
 const LAST_OUTDOOR_PHOTO_KEY = "social-media-blocker-last-outdoor-photo-v1";
 const TWO_WEEK_DAY_COUNT = 14;
 const WEEK_DAY_COUNT = 7;
 const MONTH_DAY_COUNT = 30;
-const ALLOWED_BYPASS_DURATIONS_MINUTES = [15, 30, 60, 120] as const;
 
 interface DailyBypassCount {
   key: string;
@@ -71,7 +88,11 @@ const outdoorPhoto = queryElement<HTMLImageElement>("#outdoor-photo");
 const siteName = queryElement<HTMLElement>("#site-name");
 const leadText = queryElement<HTMLElement>("#lead-text");
 const targetUrlElement = queryElement<HTMLElement>("#target-url");
+const actionControls = queryElement<HTMLElement>("#action-controls");
 const bypassButton = queryElement<HTMLButtonElement>("#bypass-button");
+const disableBlockerButton = queryElement<HTMLButtonElement>(
+  "#disable-blocker-button",
+);
 const reasonForm = queryElement<HTMLFormElement>("#reason-form");
 const reasonInput = queryElement<HTMLTextAreaElement>("#reason-input");
 const durationInputs = Array.from(
@@ -79,6 +100,16 @@ const durationInputs = Array.from(
 );
 const formError = queryElement<HTMLElement>("#form-error");
 const continueButton = queryElement<HTMLButtonElement>("#continue-button");
+const disableForm = queryElement<HTMLFormElement>("#disable-form");
+const disableDurationInputs = Array.from(
+  document.querySelectorAll<HTMLInputElement>(
+    'input[name="disableDurationMinutes"]',
+  ),
+);
+const disableFormError = queryElement<HTMLElement>("#disable-form-error");
+const disableConfirmButton = queryElement<HTMLButtonElement>(
+  "#disable-confirm-button",
+);
 const attemptsEmpty = queryElement<HTMLElement>("#attempts-empty");
 const attemptsList = queryElement<HTMLOListElement>("#attempts-list");
 const dayBypassCount = queryElement<HTMLElement>("#bypass-stat-day");
@@ -121,10 +152,16 @@ async function initialise(): Promise<void> {
   revealPage();
 
   bypassButton.addEventListener("click", revealReasonForm);
+  disableBlockerButton.addEventListener("click", revealDisableForm);
 
   reasonForm.addEventListener("submit", (event) => {
     event.preventDefault();
     void submitReason();
+  });
+
+  disableForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    void submitDisable();
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -160,7 +197,7 @@ async function continueIfBlockingDisabled(): Promise<boolean> {
 
   const state = await getState();
   const siteIsEnabled = state.sites[site.id] ?? true;
-  if (state.globalEnabled && siteIsEnabled) {
+  if (isBlockingEnabled(state) && siteIsEnabled) {
     return false;
   }
 
@@ -171,7 +208,9 @@ async function continueIfBlockingDisabled(): Promise<boolean> {
   try {
     const currentTab = await getCurrentTab();
     if (typeof currentTab?.id !== "number") {
-      throw new Error("Blocking is disabled, but this tab could not be reopened.");
+      throw new Error(
+        "Blocking is disabled, but this tab could not be reopened.",
+      );
     }
 
     await updateTab(currentTab.id, { url: requestedUrl });
@@ -181,7 +220,9 @@ async function continueIfBlockingDisabled(): Promise<boolean> {
     if (wasVisible) {
       revealPage();
     }
-    showError(error instanceof Error ? error.message : "Could not reopen this page.");
+    showActiveFormError(
+      error instanceof Error ? error.message : "Could not reopen this page.",
+    );
     return false;
   }
 }
@@ -191,7 +232,7 @@ async function submitReason(): Promise<void> {
     return;
   }
 
-  const durationMinutes = readSelectedDurationMinutes();
+  const durationMinutes = readSelectedDurationMinutes(durationInputs);
   if (!durationMinutes) {
     showError("Choose how long the bypass should stay active.");
     durationInputs[0]?.focus();
@@ -230,6 +271,53 @@ async function submitReason(): Promise<void> {
   } catch (error) {
     showError(error instanceof Error ? error.message : "Could not continue.");
     setSubmitting(false);
+  }
+}
+
+async function submitDisable(): Promise<void> {
+  if (!site || isRedirecting) {
+    return;
+  }
+
+  const durationMinutes = readSelectedDurationMinutes(disableDurationInputs);
+  if (!durationMinutes) {
+    showDisableError("Choose how long the entire blocker should be disabled.");
+    disableDurationInputs[0]?.focus();
+    return;
+  }
+
+  setDisableSubmitting(true);
+  showDisableError("");
+
+  try {
+    const currentTab = await getCurrentTab();
+    if (typeof currentTab?.id !== "number") {
+      throw new Error("Could not identify this tab.");
+    }
+
+    isRedirecting = true;
+    const message: PauseBlockingMessage = {
+      type: "pause-blocking",
+      durationMinutes,
+    };
+    const response = await sendRuntimeMessage<PauseBlockingResponse>(message);
+
+    if (!response?.ok) {
+      throw new Error(response?.error ?? "Could not disable blocking.");
+    }
+
+    await updateTab(currentTab.id, { url: requestedUrl });
+  } catch (error) {
+    isRedirecting = false;
+    setDisableSubmitting(false);
+
+    if (await continueIfBlockingDisabled()) {
+      return;
+    }
+
+    showDisableError(
+      error instanceof Error ? error.message : "Could not disable blocking.",
+    );
   }
 }
 
@@ -349,16 +437,19 @@ function renderOutdoorPhoto(): void {
 function renderBlockRequest(): void {
   siteName.textContent = site?.name ?? "";
   targetUrlElement.textContent = formatDisplayDomain(requestedUrl);
-  bypassButton.hidden = false;
+  actionControls.hidden = false;
   bypassButton.setAttribute("aria-expanded", "false");
+  disableBlockerButton.setAttribute("aria-expanded", "false");
   reasonForm.hidden = true;
+  disableForm.hidden = true;
 }
 
 function renderInvalidRequest(): void {
   siteName.textContent = "Nothing to unblock";
   leadText.textContent = "No valid blocked URL was provided.";
-  bypassButton.hidden = true;
+  actionControls.hidden = true;
   reasonForm.hidden = true;
+  disableForm.hidden = true;
 }
 
 function formatDisplayDomain(url: string): string {
@@ -385,6 +476,20 @@ function showError(message: string): void {
   formError.hidden = !message;
 }
 
+function showDisableError(message: string): void {
+  disableFormError.textContent = message;
+  disableFormError.hidden = !message;
+}
+
+function showActiveFormError(message: string): void {
+  if (!disableForm.hidden) {
+    showDisableError(message);
+    return;
+  }
+
+  showError(message);
+}
+
 function showAttemptsError(message: string): void {
   attemptsList.replaceChildren();
   attemptsEmpty.textContent = message;
@@ -395,9 +500,11 @@ function showInitialisationError(error: unknown): void {
   console.error("Failed to initialise block page", error);
   renderOutdoorPhoto();
   siteName.textContent = "Could not load block page";
-  leadText.textContent = "Refresh this tab or try opening the original URL again.";
-  bypassButton.hidden = true;
+  leadText.textContent =
+    "Refresh this tab or try opening the original URL again.";
+  actionControls.hidden = true;
   reasonForm.hidden = true;
+  disableForm.hidden = true;
   showAttemptsError("Could not load previous access reasons.");
   renderBypassStats([]);
   revealPage();
@@ -409,11 +516,19 @@ function showRefreshError(error: unknown): void {
 }
 
 function revealReasonForm(): void {
-  bypassButton.hidden = true;
+  actionControls.hidden = true;
   bypassButton.setAttribute("aria-expanded", "true");
   reasonForm.hidden = false;
   showError("");
   reasonInput.focus();
+}
+
+function revealDisableForm(): void {
+  actionControls.hidden = true;
+  disableBlockerButton.setAttribute("aria-expanded", "true");
+  disableForm.hidden = false;
+  showDisableError("");
+  disableDurationInputs[0]?.focus();
 }
 
 function setSubmitting(isSubmitting: boolean): void {
@@ -425,11 +540,21 @@ function setSubmitting(isSubmitting: boolean): void {
   }
 }
 
-function readSelectedDurationMinutes(): number | null {
-  const selectedInput = durationInputs.find((input) => input.checked);
+function setDisableSubmitting(isSubmitting: boolean): void {
+  disableBlockerButton.disabled = isSubmitting;
+  disableConfirmButton.disabled = isSubmitting;
+  for (const input of disableDurationInputs) {
+    input.disabled = isSubmitting;
+  }
+}
+
+function readSelectedDurationMinutes(
+  inputs: readonly HTMLInputElement[],
+): number | null {
+  const selectedInput = inputs.find((input) => input.checked);
   const durationMinutes = Number(selectedInput?.value);
 
-  return ALLOWED_BYPASS_DURATIONS_MINUTES.some(
+  return ALLOWED_TEMPORARY_DURATIONS_MINUTES.some(
     (allowedDuration) => allowedDuration === durationMinutes,
   )
     ? durationMinutes

@@ -4,6 +4,9 @@ import { BLOCKED_SITES, defaultSiteSettings } from "./sites.js";
 export const STORAGE_KEY = "social-media-blocker-state-v1";
 export const MAX_ATTEMPTS = 200;
 
+const STATE_LOCK_NAME = `${STORAGE_KEY}:write`;
+let fallbackStateOperation: Promise<void> = Promise.resolve();
+
 export interface AccessAttempt {
   id: string;
   siteId: string;
@@ -15,6 +18,7 @@ export interface AccessAttempt {
 
 export interface ExtensionState {
   globalEnabled: boolean;
+  globalDisabledUntil: number | null;
   sites: Record<string, boolean>;
   attempts: AccessAttempt[];
 }
@@ -32,16 +36,57 @@ export async function getState(): Promise<ExtensionState> {
 }
 
 export async function saveState(state: ExtensionState): Promise<void> {
-  await setStorageValue({ [STORAGE_KEY]: normaliseState(state) });
+  await withStateWriteLock(async () => {
+    await writeState(state);
+  });
 }
 
 export async function updateState(
   updater: (state: ExtensionState) => ExtensionState,
 ): Promise<ExtensionState> {
-  const currentState = await getState();
-  const nextState = normaliseState(updater(currentState));
-  await saveState(nextState);
-  return nextState;
+  return withStateWriteLock(async () => {
+    const currentState = await getState();
+    const nextState = normaliseState(updater(currentState));
+    await writeState(nextState);
+    return nextState;
+  });
+}
+
+async function writeState(state: ExtensionState): Promise<void> {
+  await setStorageValue({ [STORAGE_KEY]: normaliseState(state) });
+}
+
+function withStateWriteLock<TResult>(
+  operation: () => Promise<TResult>,
+): Promise<TResult> {
+  if (typeof navigator !== "undefined" && navigator.locks) {
+    return navigator.locks.request(STATE_LOCK_NAME, operation);
+  }
+
+  const result = fallbackStateOperation.then(operation, operation);
+  fallbackStateOperation = result.then(
+    () => undefined,
+    () => undefined,
+  );
+  return result;
+}
+
+export function getActiveGlobalDisableUntil(
+  state: ExtensionState,
+  now = Date.now(),
+): number | null {
+  return state.globalDisabledUntil !== null && state.globalDisabledUntil > now
+    ? state.globalDisabledUntil
+    : null;
+}
+
+export function isBlockingEnabled(
+  state: ExtensionState,
+  now = Date.now(),
+): boolean {
+  return (
+    state.globalEnabled && getActiveGlobalDisableUntil(state, now) === null
+  );
 }
 
 export function createAccessAttempt(input: NewAccessAttempt): AccessAttempt {
@@ -76,9 +121,16 @@ export function normaliseState(value: unknown): ExtensionState {
   return {
     globalEnabled:
       typeof raw.globalEnabled === "boolean" ? raw.globalEnabled : true,
+    globalDisabledUntil: normaliseGlobalDisabledUntil(raw.globalDisabledUntil),
     sites,
     attempts,
   };
+}
+
+function normaliseGlobalDisabledUntil(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value > 0
+    ? value
+    : null;
 }
 
 function normaliseAttempt(value: unknown): AccessAttempt[] {

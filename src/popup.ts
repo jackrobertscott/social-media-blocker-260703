@@ -1,3 +1,8 @@
+import { sendRuntimeMessage } from "./shared/chrome.js";
+import type {
+  SetGlobalBlockingMessage,
+  SetGlobalBlockingResponse,
+} from "./shared/messages.js";
 import {
   BLOCKED_SITE_CATEGORIES,
   formatSiteDomains,
@@ -6,7 +11,9 @@ import {
   type BlockedSiteCategory,
 } from "./shared/sites.js";
 import {
+  getActiveGlobalDisableUntil,
   getState,
+  isBlockingEnabled,
   updateState,
   type AccessAttempt,
   type ExtensionState,
@@ -16,6 +23,10 @@ const CATEGORY_EXPANSION_STORAGE_KEY =
   "social-media-blocker-popup-category-expansion-v1";
 
 const globalToggle = queryElement<HTMLInputElement>("#global-toggle");
+const globalToggleLabel = queryElement<HTMLElement>("#global-toggle-label");
+const globalToggleDescription = queryElement<HTMLElement>(
+  "#global-toggle-description",
+);
 const siteList = queryElement<HTMLElement>("#site-list");
 const attemptsEmpty = queryElement<HTMLElement>("#popup-attempts-empty");
 const attemptsList = queryElement<HTMLOListElement>("#popup-attempts-list");
@@ -24,8 +35,10 @@ const expandedCategoryIds = readExpandedCategoryIds();
 void render();
 
 globalToggle.addEventListener("change", () => {
-  const enabled = globalToggle.checked;
-  void updateState((state) => ({ ...state, globalEnabled: enabled })).then(render);
+  void setGlobalBlocking(globalToggle.checked).catch((error: unknown) => {
+    console.error("Failed to update global blocking", error);
+    void render();
+  });
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
@@ -34,11 +47,50 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   }
 });
 
+async function setGlobalBlocking(enabled: boolean): Promise<void> {
+  const message: SetGlobalBlockingMessage = {
+    type: "set-global-blocking",
+    enabled,
+  };
+  const response = await sendRuntimeMessage<SetGlobalBlockingResponse>(message);
+  if (!response?.ok) {
+    throw new Error(
+      response?.error ?? "Could not update the blocking setting.",
+    );
+  }
+
+  await render();
+}
+
 async function render(): Promise<void> {
   const state = await getState();
-  globalToggle.checked = state.globalEnabled;
+  renderGlobalToggle(state);
   renderSites(state);
   renderAttempts(state.attempts);
+}
+
+function renderGlobalToggle(state: ExtensionState): void {
+  const activeDisableUntil = getActiveGlobalDisableUntil(state);
+  globalToggle.checked = isBlockingEnabled(state);
+
+  if (state.globalEnabled && activeDisableUntil !== null) {
+    globalToggleLabel.textContent = "Blocking paused";
+    globalToggleDescription.textContent =
+      `All blocking resumes at ${formatDisableEnd(activeDisableUntil)}. ` +
+      "Check to resume now.";
+    return;
+  }
+
+  if (!state.globalEnabled) {
+    globalToggleLabel.textContent = "Blocking disabled";
+    globalToggleDescription.textContent =
+      "All blocked-site controls are off. Check to enable them.";
+    return;
+  }
+
+  globalToggleLabel.textContent = "Blocking enabled";
+  globalToggleDescription.textContent =
+    "Turns all blocked-site controls on or off.";
 }
 
 function renderSites(state: ExtensionState): void {
@@ -65,7 +117,10 @@ function createCategoryElement(
   const panelId = `category-${category.id}-sites`;
 
   categoryElement.className = "site-category";
-  categoryElement.setAttribute("aria-labelledby", `category-${category.id}-label`);
+  categoryElement.setAttribute(
+    "aria-labelledby",
+    `category-${category.id}-label`,
+  );
 
   const header = document.createElement("div");
   header.className = "site-category-header";
@@ -151,7 +206,10 @@ function createChevronIcon(): SVGSVGElement {
   return svg;
 }
 
-function createSiteToggle(site: BlockedSite, state: ExtensionState): HTMLLabelElement {
+function createSiteToggle(
+  site: BlockedSite,
+  state: ExtensionState,
+): HTMLLabelElement {
   const label = document.createElement("label");
   label.className = "toggle-row";
 
@@ -210,10 +268,14 @@ function setCategoryExpanded(categoryId: string, isExpanded: boolean): void {
 }
 
 function readExpandedCategoryIds(): Set<string> {
-  const defaultExpandedIds = BLOCKED_SITE_CATEGORIES.map((category) => category.id);
+  const defaultExpandedIds = BLOCKED_SITE_CATEGORIES.map(
+    (category) => category.id,
+  );
 
   try {
-    const storedValue = window.localStorage.getItem(CATEGORY_EXPANSION_STORAGE_KEY);
+    const storedValue = window.localStorage.getItem(
+      CATEGORY_EXPANSION_STORAGE_KEY,
+    );
     if (storedValue === null) {
       return new Set(defaultExpandedIds);
     }
@@ -269,6 +331,13 @@ function createAttemptElement(attempt: AccessAttempt): HTMLLIElement {
 
   item.append(meta, reason);
   return item;
+}
+
+function formatDisableEnd(value: number): string {
+  return new Date(value).toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 function formatDate(value: string): string {
