@@ -268,7 +268,13 @@ async function submitReason(): Promise<void> {
     if (!response?.ok) {
       throw new Error(response?.error ?? "Could not continue to the site.");
     }
+
+    // Wait for the background acknowledgement before unloading this sender,
+    // otherwise Chrome closes the message port before delivering the response.
+    isRedirecting = true;
+    await updateTab(currentTab.id, { url: requestedUrl });
   } catch (error) {
+    isRedirecting = false;
     showError(error instanceof Error ? error.message : "Could not continue.");
     setSubmitting(false);
   }

@@ -294,7 +294,6 @@ async function grantAccess(message: {
 
   await setStoredGrant(message.tabId, grant);
   scheduleGrantExpiry(message.tabId, grant);
-  await updateTab(message.tabId, { url: message.url });
 }
 
 async function enforceGrantExpiry(
