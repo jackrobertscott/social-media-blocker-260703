@@ -15,6 +15,7 @@ import {
   getSiteById,
 } from "./shared/sites.js";
 import {
+  STORAGE_KEY,
   getState,
   isBlockingEnabled,
   type AccessAttempt,
@@ -164,7 +165,7 @@ async function initialise(): Promise<void> {
   });
 
   chrome.storage.onChanged.addListener((changes, areaName) => {
-    if (areaName === "local" && Object.keys(changes).length > 0) {
+    if (areaName === "local" && STORAGE_KEY in changes) {
       void refreshAfterStateChange().catch(showRefreshError);
     }
   });

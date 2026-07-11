@@ -11,6 +11,7 @@ import {
   type BlockedSiteCategory,
 } from "./shared/sites.js";
 import {
+  STORAGE_KEY,
   getActiveGlobalDisableUntil,
   getState,
   isBlockingEnabled,
@@ -42,7 +43,7 @@ globalToggle.addEventListener("change", () => {
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === "local" && Object.keys(changes).length > 0) {
+  if (areaName === "local" && STORAGE_KEY in changes) {
     void render();
   }
 });

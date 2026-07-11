@@ -5,6 +5,7 @@ export const STORAGE_KEY = "social-media-blocker-state-v1";
 export const MAX_ATTEMPTS = 200;
 
 const STATE_LOCK_NAME = `${STORAGE_KEY}:write`;
+const STATE_LOCK_WAIT_TIMEOUT_MILLISECONDS = 5_000;
 let fallbackStateOperation: Promise<void> = Promise.resolve();
 
 export interface AccessAttempt {
@@ -56,11 +57,38 @@ async function writeState(state: ExtensionState): Promise<void> {
   await setStorageValue({ [STORAGE_KEY]: normaliseState(state) });
 }
 
-function withStateWriteLock<TResult>(
+async function withStateWriteLock<TResult>(
   operation: () => Promise<TResult>,
 ): Promise<TResult> {
   if (typeof navigator !== "undefined" && navigator.locks) {
-    return navigator.locks.request(STATE_LOCK_NAME, operation);
+    const abortController = new AbortController();
+    let lockWasAcquired = false;
+    const timeoutId = setTimeout(() => {
+      if (!lockWasAcquired) {
+        abortController.abort();
+      }
+    }, STATE_LOCK_WAIT_TIMEOUT_MILLISECONDS);
+
+    try {
+      return await navigator.locks.request(
+        STATE_LOCK_NAME,
+        { signal: abortController.signal },
+        async () => {
+          lockWasAcquired = true;
+          clearTimeout(timeoutId);
+          return operation();
+        },
+      );
+    } catch (error) {
+      if (abortController.signal.aborted && !lockWasAcquired) {
+        throw new Error("The blocker settings are busy. Please try again.", {
+          cause: error,
+        });
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
+    }
   }
 
   const result = fallbackStateOperation.then(operation, operation);
