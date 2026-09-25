@@ -13,7 +13,6 @@ export interface AccessAttempt {
   siteId: string;
   siteName: string;
   url: string;
-  reason: string;
   createdAt: string;
 }
 
@@ -28,7 +27,6 @@ export interface NewAccessAttempt {
   siteId: string;
   siteName: string;
   url: string;
-  reason: string;
 }
 
 export async function getState(): Promise<ExtensionState> {
@@ -123,7 +121,6 @@ export function createAccessAttempt(input: NewAccessAttempt): AccessAttempt {
     siteId: input.siteId,
     siteName: input.siteName,
     url: input.url,
-    reason: input.reason,
     createdAt: new Date().toISOString(),
   };
 }
@@ -171,7 +168,6 @@ function normaliseAttempt(value: unknown): AccessAttempt[] {
     typeof value.siteId !== "string" ||
     typeof value.siteName !== "string" ||
     typeof value.url !== "string" ||
-    typeof value.reason !== "string" ||
     typeof value.createdAt !== "string"
   ) {
     return [];
@@ -183,7 +179,6 @@ function normaliseAttempt(value: unknown): AccessAttempt[] {
       siteId: value.siteId,
       siteName: value.siteName,
       url: value.url,
-      reason: value.reason,
       createdAt: value.createdAt,
     },
   ];

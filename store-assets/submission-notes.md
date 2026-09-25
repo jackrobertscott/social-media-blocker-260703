@@ -19,17 +19,17 @@ must have `manifest.json` at the root, not inside a top-level `dist/` folder. Us
 
 Short description (from manifest):
 
-> Blocks social media and video streaming sites until you write why you need access.
+> Blocks social media and video streaming sites with timed, per-tab bypass controls.
 
 Long description:
 
-> Social Media Blocker helps you pause before opening distracting social and streaming sites. When you visit a configured blocked domain, the extension shows a quiet block page with an outdoor image and asks you to write a short reason before continuing. The reason is saved locally in Chrome so you can see recent access attempts and keep your browsing intentional.
+> Social Media Blocker helps you pause before opening distracting social and streaming sites. When you visit a configured blocked domain, the extension shows a quiet block page with an outdoor image. Choose a timed bypass for that site, or temporarily pause blocking for all sites. No written reason is required or stored.
 >
 > Features:
 > - Global on/off switch in the popup.
 > - Per-site toggles for supported social media and streaming domains.
-> - Local history of recent access reasons.
-> - Per-tab access grants: leaving the site clears the grant, so returning asks again.
+> - Local history and statistics of recent bypasses.
+> - Per-tab access grants: leaving the site clears the grant, so returning shows the block page again.
 > - No accounts, subscriptions, ads, analytics, or remote code.
 
 Suggested category: Productivity
@@ -54,12 +54,12 @@ Privacy policy URL:
 
 Single purpose:
 
-> Blocks selected social media and video streaming sites and asks the user to record a reason before allowing access.
+> Blocks selected social media and video streaming sites with timed bypasses for individual sites or all sites.
 
 Permission justifications:
 
-- `storage`: Saves the extension's on/off setting, per-site toggles, and recent access reasons locally in Chrome.
-- `tabs`: Redirects the current tab to the block page and then back to the originally requested site after a reason is submitted.
+- `storage`: Saves the extension's on/off setting, per-site toggles, timed grants, and recent bypass metadata locally in Chrome.
+- `tabs`: Redirects the current tab to the block page and then back to the originally requested site after a bypass is selected.
 - `webNavigation`: Detects main-frame navigation to configured social media and streaming domains so the block page can be shown before the site loads.
 - Host permissions: Limited to the configured social media and streaming domains so the extension can detect and redirect only those sites.
 
@@ -69,8 +69,8 @@ Remote code:
 
 Data disclosure draft:
 
-> The extension stores settings, the requested blocked URL/domain, timestamps, and reasons entered by the user locally in Chrome storage. This data is used only to provide the blocker and recent-reasons history. It is not sold, shared, or transmitted to the developer. The block page loads decorative outdoor images from Unsplash, which may cause the browser to request image files from Unsplash.
+> The extension stores settings, blocked URLs/domains, bypass timestamps, and timed grants locally in Chrome storage. This data is used only to provide the blocker and recent-bypasses history. It is not sold, shared, or transmitted to the developer. The block page loads decorative outdoor images from Unsplash, which may cause the browser to request image files from Unsplash.
 
 ## Test instructions
 
-> Install the extension, ensure the global switch is on, then open a configured site such as instagram.com, reddit.com, or netflix.com. The extension should redirect to the block page. Enter a non-empty reason and click Continue to site. Confirm the tab opens the requested site and the reason appears in the extension's recent-reasons history. In the popup, toggle the extension or individual sites off and confirm those sites are no longer blocked.
+> Install the extension, ensure the global switch is on, then open a configured site such as instagram.com, reddit.com, or netflix.com. The extension should redirect to the block page. Click Bypass this site, select a duration, and click Continue to site without entering any text. Confirm the tab opens the requested site and a bypass appears in the extension's recent-bypasses history. In the popup, toggle the extension or individual sites off and confirm those sites are no longer blocked.

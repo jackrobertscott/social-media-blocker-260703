@@ -3,7 +3,6 @@ export interface GrantAccessMessage {
   tabId: number;
   siteId: string;
   url: string;
-  reason: string;
   durationMinutes: number;
 }
 
@@ -33,7 +32,6 @@ export function isGrantAccessMessage(
     Number.isInteger(candidate.tabId) &&
     typeof candidate.siteId === "string" &&
     typeof candidate.url === "string" &&
-    typeof candidate.reason === "string" &&
     isFiniteDuration(candidate.durationMinutes)
   );
 }

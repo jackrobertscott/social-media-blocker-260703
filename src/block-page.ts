@@ -21,7 +21,7 @@ import {
   type AccessAttempt,
 } from "./shared/storage.js";
 
-const EMPTY_ATTEMPTS_TEXT = "No reasons recorded yet.";
+const EMPTY_ATTEMPTS_TEXT = "No bypasses recorded yet.";
 const LAST_OUTDOOR_PHOTO_KEY = "social-media-blocker-last-outdoor-photo-v1";
 const TWO_WEEK_DAY_COUNT = 14;
 const WEEK_DAY_COUNT = 7;
@@ -93,8 +93,7 @@ const bypassButton = queryElement<HTMLButtonElement>("#bypass-button");
 const disableBlockerButton = queryElement<HTMLButtonElement>(
   "#disable-blocker-button",
 );
-const reasonForm = queryElement<HTMLFormElement>("#reason-form");
-const reasonInput = queryElement<HTMLTextAreaElement>("#reason-input");
+const bypassForm = queryElement<HTMLFormElement>("#bypass-form");
 const durationInputs = Array.from(
   document.querySelectorAll<HTMLInputElement>('input[name="durationMinutes"]'),
 );
@@ -151,12 +150,12 @@ async function initialise(): Promise<void> {
   await renderAttemptsSafely();
   revealPage();
 
-  bypassButton.addEventListener("click", revealReasonForm);
+  bypassButton.addEventListener("click", revealBypassForm);
   disableBlockerButton.addEventListener("click", revealDisableForm);
 
-  reasonForm.addEventListener("submit", (event) => {
+  bypassForm.addEventListener("submit", (event) => {
     event.preventDefault();
-    void submitReason();
+    void submitBypass();
   });
 
   disableForm.addEventListener("submit", (event) => {
@@ -227,7 +226,7 @@ async function continueIfBlockingDisabled(): Promise<boolean> {
   }
 }
 
-async function submitReason(): Promise<void> {
+async function submitBypass(): Promise<void> {
   if (!site || isRedirecting) {
     return;
   }
@@ -236,13 +235,6 @@ async function submitReason(): Promise<void> {
   if (!durationMinutes) {
     showError("Choose how long the bypass should stay active.");
     durationInputs[0]?.focus();
-    return;
-  }
-
-  const reason = reasonInput.value.trim();
-  if (!reason) {
-    showError("Write a reason before continuing.");
-    reasonInput.focus();
     return;
   }
 
@@ -260,7 +252,6 @@ async function submitReason(): Promise<void> {
       tabId: currentTab.id,
       siteId: site.id,
       url: requestedUrl,
-      reason,
       durationMinutes,
     };
     const response = await sendRuntimeMessage<GrantAccessResponse>(message);
@@ -323,7 +314,7 @@ async function renderAttemptsSafely(): Promise<void> {
     const state = await getState();
     renderAccessData(state.attempts);
   } catch (error) {
-    showAttemptsError("Could not load previous access reasons.");
+    showAttemptsError("Could not load previous bypasses.");
     renderBypassStats([]);
     console.error("Failed to render access attempts", error);
   }
@@ -437,7 +428,7 @@ function renderBlockRequest(): void {
   actionControls.hidden = false;
   bypassButton.setAttribute("aria-expanded", "false");
   disableBlockerButton.setAttribute("aria-expanded", "false");
-  reasonForm.hidden = true;
+  bypassForm.hidden = true;
   disableForm.hidden = true;
 }
 
@@ -445,7 +436,7 @@ function renderInvalidRequest(): void {
   siteName.textContent = "Nothing to unblock";
   leadText.textContent = "No valid blocked URL was provided.";
   actionControls.hidden = true;
-  reasonForm.hidden = true;
+  bypassForm.hidden = true;
   disableForm.hidden = true;
 }
 
@@ -460,11 +451,7 @@ function createAttemptElement(attempt: AccessAttempt): HTMLLIElement {
   meta.className = "attempt-meta";
   meta.textContent = `${attempt.siteName} · ${formatDate(attempt.createdAt)}`;
 
-  const reason = document.createElement("p");
-  reason.className = "attempt-reason";
-  reason.textContent = attempt.reason;
-
-  item.append(meta, reason);
+  item.append(meta);
   return item;
 }
 
@@ -500,24 +487,24 @@ function showInitialisationError(error: unknown): void {
   leadText.textContent =
     "Refresh this tab or try opening the original URL again.";
   actionControls.hidden = true;
-  reasonForm.hidden = true;
+  bypassForm.hidden = true;
   disableForm.hidden = true;
-  showAttemptsError("Could not load previous access reasons.");
+  showAttemptsError("Could not load previous bypasses.");
   renderBypassStats([]);
   revealPage();
 }
 
 function showRefreshError(error: unknown): void {
   console.error("Failed to refresh block page", error);
-  showAttemptsError("Could not refresh previous access reasons.");
+  showAttemptsError("Could not refresh previous bypasses.");
 }
 
-function revealReasonForm(): void {
+function revealBypassForm(): void {
   actionControls.hidden = true;
   bypassButton.setAttribute("aria-expanded", "true");
-  reasonForm.hidden = false;
+  bypassForm.hidden = false;
   showError("");
-  reasonInput.focus();
+  durationInputs.find((input) => input.checked)?.focus();
 }
 
 function revealDisableForm(): void {
@@ -531,7 +518,6 @@ function revealDisableForm(): void {
 function setSubmitting(isSubmitting: boolean): void {
   bypassButton.disabled = isSubmitting;
   continueButton.disabled = isSubmitting;
-  reasonInput.disabled = isSubmitting;
   for (const input of durationInputs) {
     input.disabled = isSubmitting;
   }

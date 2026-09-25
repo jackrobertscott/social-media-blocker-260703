@@ -3,10 +3,11 @@
   "version": "0.1.1",
   "private": true,
   "type": "module",
-  "description": "Austere Chrome extension that blocks social media and video streaming sites beside a full-height outdoor photo until a reason is recorded.",
+  "description": "Austere Chrome extension that blocks social media and video streaming sites beside a full-height outdoor photo with timed, per-tab bypass controls.",
   "scripts": {
     "clean": "rm -rf dist",
     "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node scripts/test-bypass.mjs",
     "sync:manifest-version": "node scripts/sync-manifest-version.mjs",
     "build": "npm run clean && npm run sync:manifest-version && tsc -p tsconfig.json && node scripts/copy-static.mjs",
     "package:chrome": "node scripts/package-chrome-store.mjs"

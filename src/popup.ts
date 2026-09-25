@@ -326,11 +326,7 @@ function createAttemptElement(attempt: AccessAttempt): HTMLLIElement {
   meta.className = "attempt-meta";
   meta.textContent = `${attempt.siteName} · ${formatDate(attempt.createdAt)}`;
 
-  const reason = document.createElement("p");
-  reason.className = "attempt-reason";
-  reason.textContent = attempt.reason;
-
-  item.append(meta, reason);
+  item.append(meta);
   return item;
 }
 

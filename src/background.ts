@@ -201,7 +201,6 @@ async function grantAccess(message: {
   tabId: number;
   siteId: string;
   url: string;
-  reason: string;
   durationMinutes: number;
 }): Promise<void> {
   const durationMinutes = normaliseTemporaryDurationMinutes(
@@ -209,11 +208,6 @@ async function grantAccess(message: {
   );
   if (!durationMinutes) {
     throw new Error("Choose a valid bypass duration.");
-  }
-
-  const reason = message.reason.trim();
-  if (!reason) {
-    throw new Error("Write a reason before continuing.");
   }
 
   const site = findMatchingSite(message.url);
@@ -228,7 +222,6 @@ async function grantAccess(message: {
         siteId: site.id,
         siteName: site.name,
         url: message.url,
-        reason,
       }),
       ...state.attempts,
     ].slice(0, MAX_ATTEMPTS),
